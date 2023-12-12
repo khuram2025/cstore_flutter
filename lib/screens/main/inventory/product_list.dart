@@ -1,5 +1,27 @@
+import 'package:cstore_flutter/responsive.dart';
+import 'package:cstore_flutter/screens/dashboard/components/header.dart';
+import 'package:cstore_flutter/screens/main/components/side_menu.dart';
+
+import 'package:flutter/material.dart';
+import '../../../constants.dart';
+
+
 class ProductListScreen extends StatelessWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<Product> products = [
+    Product('RedBull', '15 EGP - 12 PC', 'assets/images/redbull.png'),
+    Product('Shampoo', '45 EGP - 30 PC', 'assets/images/shampoo.png'),
+    Product('Nestlé Water', '48 EGP - 40 PC', 'assets/images/water.png'),
+    Product('Lays Chips', '50 EGP - 100 PC', 'assets/images/chips.png'),
+    Product('Tea', '15 EGP - 12 PC', 'assets/images/tea.png'),
+    Product('Rice', '10 EGP - 13 PC', 'assets/images/rice.png'),
+    Product('Oreo Cookies', '15 EGP - 12 PC', 'assets/images/oreo.png'),
+    Product('Toothpaste', '25 EGP - 15 PC', 'assets/images/toothpaste.png'),
+    Product('Soda', '20 EGP - 24 PC', 'assets/images/soda.png'),
+    Product('Chocolate Bar', '30 EGP - 20 PC', 'assets/images/chocolate.png'),
+    // Add more products as needed
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +50,7 @@ class ProductListScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.headline6,
                     ),
                     SizedBox(height: defaultPadding),
-                    ProductListView(), // Correctly placed within a Column
+                    ProductListView(products: products), // Correctly placed within a Column
                   ],
                 ),
               ),
@@ -41,15 +63,15 @@ class ProductListScreen extends StatelessWidget {
 }
 
 class ProductListView extends StatelessWidget {
+  final List<Product> products;
+
+  ProductListView({Key? key, required this.products}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    final List<Product> products = [
-      // ... product list ...
-    ];
-
     return ListView.builder(
-      shrinkWrap: true, // Add shrinkWrap
-      physics: NeverScrollableScrollPhysics(), // Add this to keep the ListView from scrolling
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
@@ -59,6 +81,9 @@ class ProductListView extends StatelessWidget {
               product.imagePath,
               width: 50,
               height: 50,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.error); // Fallback icon in case of an error
+              },
             ),
             title: Text(product.name),
             subtitle: Text(product.details),
