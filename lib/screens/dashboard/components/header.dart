@@ -1,24 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 import '../../../constants.dart';
 import '../../../controllers/MenuAppController.dart';
 import '../../../responsive.dart';
 
+
 class Header extends StatelessWidget {
+  final GlobalKey<ScaffoldState> scaffoldKey;
   const Header({
-    Key? key,
+    Key? key, required this.scaffoldKey,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final MenuAppController menuController = Get.find<MenuAppController>();
+
     return Row(
       children: [
         if (!Responsive.isDesktop(context))
           IconButton(
             icon: Icon(Icons.menu),
-            onPressed: context.read<MenuAppController>().controlMenu,
+            onPressed: () {
+              print("Menu icon pressed"); // Confirming the button press
+
+              if (scaffoldKey.currentState != null) {
+                print("Scaffold state is not null");
+                scaffoldKey.currentState!.openDrawer();
+              } else {
+                print("Scaffold state is null");
+              }
+            }, // Accessing controller with GetX
           ),
         if (!Responsive.isMobile(context))
           Text(

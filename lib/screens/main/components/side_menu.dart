@@ -1,3 +1,4 @@
+import 'package:cstore_flutter/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -23,7 +24,7 @@ class SideMenu extends StatelessWidget {
             press: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => DashboardScreen()),
+                MaterialPageRoute(builder: (context) => MainScreen()),
               );
             },
           ),

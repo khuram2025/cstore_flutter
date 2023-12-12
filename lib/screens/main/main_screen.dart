@@ -7,11 +7,13 @@ import '../dashboard/dashboard_screen.dart';
 import 'components/side_menu.dart';
 
 class MainScreen extends StatelessWidget {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Define GlobalKey here
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      key: _scaffoldKey,
       drawer: SideMenu(),
       body: SafeArea(
         child: Row(
@@ -27,7 +29,7 @@ class MainScreen extends StatelessWidget {
             Expanded(
               // It takes 5/6 part of the screen
               flex: 5,
-              child: DashboardScreen(),
+              child: DashboardScreen(scaffoldKey: _scaffoldKey),
             ),
           ],
         ),

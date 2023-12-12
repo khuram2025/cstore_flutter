@@ -29,11 +29,7 @@ class TransactionScreen extends StatelessWidget {
                 padding: EdgeInsets.all(defaultPadding),
                 child: Column(
                   children: [
-                    Builder(
-                      builder: (context) {
-                        return Header(); // Now 'context' includes the provider.
-                      },
-                    ),
+                    Header(scaffoldKey: _scaffoldKey),
 
                     SizedBox(height: defaultPadding),
                     Center(
