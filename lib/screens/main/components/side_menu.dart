@@ -1,4 +1,6 @@
-import 'package:cstore_flutter/screens/main/inventory/product_list.dart';
+import 'package:cstore_flutter/screens/customer/customers_list.dart';
+import 'package:cstore_flutter/screens/inventory/product_list.dart';
+
 import 'package:cstore_flutter/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -51,9 +53,14 @@ class SideMenu extends StatelessWidget {
 
           ),
           DrawerListTile(
-            title: "Documents",
+            title: "Customers",
             svgSrc: "assets/icons/menu_doc.svg",
-            press: () {},
+            press: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (context) => CustomerListScreen()),
+              );
+
+            },
           ),
           DrawerListTile(
             title: "Store",
