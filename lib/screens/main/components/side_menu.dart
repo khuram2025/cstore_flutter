@@ -1,7 +1,9 @@
+import 'package:cstore_flutter/screens/accounts/login.dart';
 import 'package:cstore_flutter/screens/customer/customers_list.dart';
 import 'package:cstore_flutter/screens/inventory/product_list.dart';
 
 import 'package:cstore_flutter/screens/main/main_screen.dart';
+import 'package:cstore_flutter/screens/pos/pos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -62,15 +64,26 @@ class SideMenu extends StatelessWidget {
 
             },
           ),
+
           DrawerListTile(
-            title: "Store",
+            title: "Login",
             svgSrc: "assets/icons/menu_store.svg",
-            press: () {},
+            press: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+
+            },
           ),
           DrawerListTile(
-            title: "Notification",
+            title: "POS",
             svgSrc: "assets/icons/menu_notification.svg",
-            press: () {},
+            press: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (context) => POSScreen()),
+              );
+
+            },
           ),
           DrawerListTile(
             title: "Profile",
