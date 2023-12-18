@@ -1,47 +1,12 @@
-import 'package:cstore_flutter/responsive.dart';
-import 'package:cstore_flutter/screens/customer/components/addNewCustomer.dart';
+
+
 import 'package:cstore_flutter/screens/customer/components/customerDetailScreen.dart';
+import 'package:flutter/material.dart';
+import 'package:cstore_flutter/responsive.dart';
 import 'package:cstore_flutter/screens/dashboard/components/header.dart';
 import 'package:cstore_flutter/screens/main/components/side_menu.dart';
-
-import 'package:flutter/material.dart';
 import '../../../constants.dart';
-
-class Customer {
-  final String id;
-  final String name;
-  final String email;
-  final String phone;
-  final String address;
-
-  Customer({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.address,
-  });
-}
-
-// Dummy data for customers
-List<Customer> dummyCustomers = [
-  Customer(
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '123-456-7890',
-    address: '123 Main Street, Anytown, AT 12345',
-  ),
-  Customer(
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    phone: '098-765-4321',
-    address: '456 Oak Street, Othertown, OT 67890',
-  ),
-  // Add more dummy customers as needed
-];
-
+import 'components/addNewCustomer.dart';
 
 class CustomerListScreen extends StatefulWidget {
   @override
@@ -51,12 +16,20 @@ class CustomerListScreen extends StatefulWidget {
 class _CustomerListScreenState extends State<CustomerListScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Customer? selectedCustomer; // The selected customer for detail view
-  bool isAddingNewCustomer = false; // To determine if we are adding a new customer
+  Customer? selectedCustomer;
+  bool isAddingNewCustomer = false;
 
-  final List<Customer> customers = dummyCustomers;
-
-
+  final List<Customer> customers = [
+    // Add your dummy Customer instances here
+    // Example:
+    Customer(
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      phone: '123-456-7890',
+      address: '123 Main Street, Anytown, AT 12345', imagePath: '',
+    ),
+    // ...
+  ];
 
   void onCustomerSelected(Customer customer) {
     setState(() {
@@ -75,8 +48,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   @override
   Widget build(BuildContext context) {
     Widget detailScreen = selectedCustomer != null
-        ? CustomerDetailScreen(customer: selectedCustomer!) // selectedCustomer must be the correct Customer type
-        : AddCustomerScreen();
+        ? CustomerDetailScreen(customer: selectedCustomer!)
+        : AddNewCustomerScreen();
 
     return Scaffold(
       key: _scaffoldKey,
@@ -85,7 +58,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (Responsive.isDesktop(context)) Expanded(child: SideMenu()),
+            if (Responsive.isDesktop(context))
+              Expanded(child: SideMenu()),
             Expanded(
               flex: 3,
               child: SingleChildScrollView(
@@ -94,13 +68,35 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                 child: Column(
                   children: [
                     Header(scaffoldKey: _scaffoldKey),
-
-                    Expanded(
-                      child: CustomerListView(
-                        customers: customers,
-                        onCustomerSelected: onCustomerSelected,
-                      ),
+                    SizedBox(height: defaultPadding),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Customer List",
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                        SizedBox(width: defaultPadding),
+                        ElevatedButton(
+                            onPressed: () {
+                              // Navigate to the AddNewProductScreen when the button is pressed
+                              if (Responsive.isMobile(context)) {
+                                // If it's a mobile layout, push a new screen on the navigation stack
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => AddNewCustomerScreen()),
+                                );
+                              } else {
+                                // For desktop layout, update the state to show the AddNewProductScreen
+                                onAddCustomer(); // This will call your existing function to change the state
+                              }
+                            },
+                          child: Text("Add Customer"),
+                        ),
+                      ],
                     ),
+                    SizedBox(height: defaultPadding),
+                    CustomerListView(customers: customers, onCustomerSelected: onCustomerSelected),
                   ],
                 ),
               ),
@@ -110,7 +106,9 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             if (!Responsive.isMobile(context))
               Expanded(
                 flex: 2,
-                child: isAddingNewCustomer ? AddCustomerScreen() : (selectedCustomer != null ? CustomerDetailScreen(customer: selectedCustomer!) : Container()),
+                child: isAddingNewCustomer
+                    ? AddNewCustomerScreen()
+                    : (selectedCustomer != null ? CustomerDetailScreen(customer: selectedCustomer!) : Container()),
               ),
           ],
         ),
@@ -123,27 +121,35 @@ class CustomerListView extends StatelessWidget {
   final List<Customer> customers;
   final Function(Customer) onCustomerSelected;
 
-  CustomerListView({Key? key, required this.customers, required this.onCustomerSelected})
-      : super(key: key);
+  CustomerListView({Key? key, required this.customers, required this.onCustomerSelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       itemCount: customers.length,
       itemBuilder: (context, index) {
-        final customer = customers[index];
-        return ListTile(
-          title: Text(customer.name),
-          subtitle: Text(customer.email),
-          onTap: () => onCustomerSelected(customer),
+        final Customer customer = customers[index];
+        return Card(
+          child: ListTile(
+            title: Text(customer.name),
+            subtitle: Text(customer.email),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () {
+              if (Responsive.isMobile(context)) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CustomerDetailScreen(customer: customer)),
+                );
+              } else {
+                onCustomerSelected(customer);
+              }
+            },
+          ),
         );
       },
     );
   }
 }
-
-
-
-
-// Example of using the Customer class with dummy data
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class AddNewCustomerScreen extends StatefulWidget {
+class AddNewSupplierScreen extends StatefulWidget {
   @override
-  _AddNewCustomerScreenState createState() => _AddNewCustomerScreenState();
+  _AddNewSupplierScreenState createState() => _AddNewSupplierScreenState();
 }
 
-class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
+class _AddNewSupplierScreenState extends State<AddNewSupplierScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // TextEditingControllers for form input
@@ -18,7 +18,7 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add New Customer'),
+        title: Text('Add New Supplier'),
         actions: [
           IconButton(
             icon: Icon(Icons.more_vert),
@@ -36,7 +36,7 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Text(
-                'Customer Information',
+                'Supplier Information',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
@@ -44,11 +44,11 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: 'Name',
-                  suffixIcon: Icon(Icons.person),
+                  suffixIcon: Icon(Icons.business),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the customer\'s name';
+                    return 'Please enter the supplier\'s name';
                   }
                   return null;
                 },
@@ -62,7 +62,7 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the customer\'s email';
+                    return 'Please enter the supplier\'s email';
                   }
                   return null;
                 },
@@ -76,7 +76,7 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the customer\'s phone number';
+                    return 'Please enter the supplier\'s phone number';
                   }
                   return null;
                 },
@@ -89,23 +89,23 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the customer\'s address';
+                    return 'Please enter the supplier\'s address';
                   }
                   return null;
                 },
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                child: Text('Add Customer'),
+                child: Text('Add Supplier'),
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // Here you can handle the submission of the form
-                    // For example, you can save the customer's data to a database
-                    print('Customer added: ${nameController.text}');
+                    // Handle the submission of the form
+                    // You can save the supplier's data to a database here
+                    print('Supplier added: ${nameController.text}');
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.blue, // background (button) color
+                  primary: Colors.green, // background (button) color
                   onPrimary: Colors.white, // foreground (text) color
                 ),
               ),
