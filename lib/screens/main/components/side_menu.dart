@@ -48,7 +48,7 @@ class SideMenu extends StatelessWidget {
             svgSrc: "assets/icons/menu_task.svg",
             press: () {
               Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(builder: (context) => ProductListScreen()),
+                MaterialPageRoute(builder: (context) => ProductListScreen(companyName: "Your Company Name")),
               );
 
             },

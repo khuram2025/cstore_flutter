@@ -15,7 +15,7 @@ class ProductDetailScreen extends StatelessWidget {
     final String smsIcon = 'assets/icons/sms.svg';
     final String callIcon = 'assets/icons/call.svg';
     final String houseImagePath =
-        product.imagePath; // Use your Product's image path
+        product.imageUrl; // Use your Product's image path
 
     return DefaultTabController(
       length: 6,
@@ -36,7 +36,7 @@ class ProductDetailScreen extends StatelessWidget {
 
 
           children: [
-            Image.asset(
+            Image.network(
               houseImagePath,
               width: MediaQuery.of(context).size.width,
               height: 250,

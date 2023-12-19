@@ -1,3 +1,4 @@
+import 'package:cstore_flutter/API/api_service.dart';
 import 'package:cstore_flutter/responsive.dart';
 import 'package:cstore_flutter/screens/dashboard/components/header.dart';
 import 'package:cstore_flutter/screens/dashboard/components/storage_details.dart';
@@ -10,6 +11,10 @@ import '../../../constants.dart';
 
 
 class ProductListScreen extends StatefulWidget {
+  final String companyName;
+
+  ProductListScreen({Key? key, required this.companyName}) : super(key: key);
+
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
 }
@@ -24,21 +29,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
 
 
-  final List<Product> products = [
-    Product(
-      name: 'RedBull',
-      barcode: '1234567890123',
-      quantity: '50',
-      category: 'Beverages',
-      salePrice: '15 EGP',
-      purchasePrice: '12 EGP',
-      description: 'Energy Drink',
-      expirationDate: '2023-12-31',
-      imagePath: 'assets/images/redbull.png',
-    ),
-    // Add more dummy Product instances as needed
-    // ...
-  ];
+  List<Product> products = [];
 
   final List<Category> categories = [
     Category('Beverages'),
@@ -66,9 +57,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // This is just an example, you can replace it with your actual logic
   return category.name == 'Beverages';
   }
+  bool _isLoading = true; // To track loading state
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  void _loadProducts() async {
+    setState(() => _isLoading = true);
+    try {
+      var companyId = 11; // Replace with actual company ID
+      var fetchedProducts = await ApiService().fetchProducts(companyId);
+      setState(() {
+        products = fetchedProducts.map<Product>((json) => Product.fromJson(json)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching products: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
     Widget detailScreen = selectedProduct != null
         ? ProductDetailScreen(product: selectedProduct!) // selectedProduct must be the correct Product type
         : AddNewProductScreen();
@@ -229,6 +246,7 @@ class ProductListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return ListView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -237,10 +255,11 @@ class ProductListView extends StatelessWidget {
         final product = products[index];
         return Card(
           child: ListTile(
-            leading: Image.asset(
-              product.imagePath,
+            leading: Image.network(
+              product.imageUrl, // Use the actual image URL here
               width: 50,
               height: 50,
+              fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Icon(Icons.error); // Fallback icon in case of an error
               },
@@ -268,6 +287,7 @@ class ProductListView extends StatelessWidget {
 }
 
 class Product {
+  final int id;
   final String name;
   final String barcode;
   final String quantity;
@@ -276,20 +296,41 @@ class Product {
   final String purchasePrice;
   final String description;
   final String expirationDate;
-  final String imagePath;
+  final String imageUrl;
 
   Product({
+    required this.id,
     required this.name,
-    required this.barcode,
-    required this.quantity,
-    required this.category,
-    required this.salePrice,
-    required this.purchasePrice,
-    required this.description,
-    required this.expirationDate,
-    required this.imagePath,
+    this.barcode = '0000000000',
+    this.quantity = '10',
+    this.category = 'Dummy Category',
+    this.salePrice = '100.00',
+    this.purchasePrice = '80.00',
+    this.description = 'This is a dummy product description.',
+    this.expirationDate = '2024-01-01',
+    required this.imageUrl,
   });
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    // Define the base URL
+    const String baseUrl = 'http://app.channab.com';
+
+    // Check if image_url is not null and concatenate with base URL, otherwise use a default image
+    String imageUrl = json['image_url'] != null
+        ? baseUrl + json['image_url']
+        : 'assets/images/default_image.png';
+
+    return Product(
+      id: json['id'],
+      name: json['name'],
+      imageUrl: imageUrl,
+      // Other fields remain as dummy data
+    );
+  }
 }
+
+
+
 
 
 

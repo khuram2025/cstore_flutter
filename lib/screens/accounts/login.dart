@@ -1,4 +1,5 @@
 import 'package:cstore_flutter/API/api_service.dart';
+import 'package:cstore_flutter/screens/inventory/product_list.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -44,9 +45,11 @@ class LoginScreen extends StatelessWidget {
                       passwordController.text,
                     );
                     if (response['status'] == 'success') {
-                      // Navigate to Home Screen or Dashboard
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => ProductListScreen(companyName: "Your Company Name")),
+                      );
                     } else {
-                      // Show error message
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(response['message'])),
                       );

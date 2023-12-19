@@ -30,7 +30,7 @@ class ApiService {
 
   Future<List<dynamic>> fetchProducts(int companyId) async {
     final response = await http.get(
-      Uri.parse(baseUrl + 'api/inventory/$companyId/'), // Adjust the URL as needed
+      Uri.parse(baseUrl + 'companies/api/inventory/11/'), // Adjust the URL as needed
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
