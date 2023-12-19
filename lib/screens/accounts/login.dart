@@ -1,6 +1,11 @@
+import 'package:cstore_flutter/API/api_service.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatelessWidget {
+  final TextEditingController mobileController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final ApiService apiService = ApiService();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,14 +18,16 @@ class LoginScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
+                controller: mobileController,
                 decoration: InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'Mobile',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.phone, // Use phone keyboard type
               ),
               SizedBox(height: 16.0),
               TextFormField(
+                controller: passwordController,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
@@ -30,8 +37,25 @@ class LoginScreen extends StatelessWidget {
               SizedBox(height: 24.0),
               ElevatedButton(
                 child: Text('Login'),
-                onPressed: () {
-                  // TODO: Implement login logic
+                onPressed: () async {
+                  try {
+                    var response = await apiService.login(
+                      mobileController.text,
+                      passwordController.text,
+                    );
+                    if (response['status'] == 'success') {
+                      // Navigate to Home Screen or Dashboard
+                    } else {
+                      // Show error message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(response['message'])),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.toString())),
+                    );
+                  }
                 },
               ),
               TextButton(

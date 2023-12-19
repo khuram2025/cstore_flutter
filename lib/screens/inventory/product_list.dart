@@ -21,6 +21,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Product? selectedProduct; // The selected product for detail view
   bool isAddingNewProduct = false; // To determine if we are adding a new product
 
+
+
+
   final List<Product> products = [
     Product(
       name: 'RedBull',
