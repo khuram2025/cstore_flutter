@@ -45,16 +45,21 @@ class ApiService {
 
   Future<List<dynamic>> fetchPOSData(int storeId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/pos/$storeId/'),
+      Uri.parse(baseUrl +'companies/api/pos/$storeId/'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body)['store_products'];
+      var data = json.decode(response.body);
+      if (data is Map<String, dynamic> && data.containsKey('products')) {
+        return data['products'] as List<dynamic>;
+      } else {
+        return []; // Return an empty list if 'products' key is not found
+      }
     } else {
-      throw Exception('Failed to fetch POS data. Status code: ${response.statusCode}');
+      return []; // Return an empty list if response status code is not 200
     }
   }
 

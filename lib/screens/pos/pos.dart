@@ -16,6 +16,17 @@ class POSScreen extends StatefulWidget {
 }
 
 class _POSScreenState extends State<POSScreen> {
+  Product _createDummyProduct(int index) {
+    return Product(
+      id: index,
+      name: 'Dummy Product $index',
+      category: 'Dummy Category',
+      salePrice: '100.00',
+      purchasePrice: '80.00',
+      imageUrl: 'assets/images/default_image.png',
+      stockQuantity: 10,
+    );
+  }
   List<Product> products = [];
   List<Category> categories = [];
   bool _isLoading = true;
@@ -28,20 +39,29 @@ class _POSScreenState extends State<POSScreen> {
 
   void _loadPOSData() async {
     try {
-      var storeId = 1; // Replace with the actual store ID
-      var posData = await ApiService().fetchPOSData(storeId);
-      // Process posData to populate products and categories
-      setState(() {
-        products = posData['products'].map<Product>((json) => Product.fromJson(json)).toList();
-        categories = posData['categories'].map<Category>((name) => Category(name)).toList();
-        _isLoading = false;
-      });
+      var storeId = 11; // Replace with the actual store ID
+      var response = await ApiService().fetchPOSData(storeId);
+
+      print("Response: $response"); // Debug: Print the entire response
+
+      // Check if the response is a list
+      if (response is List) {
+        List<dynamic> productData = response;
+
+        setState(() {
+          products = productData.map((json) => Product.fromJson(json)).toList();
+          _isLoading = false;
+        });
+      } else {
+        print("Error: Invalid response format");
+        setState(() => _isLoading = false);
+      }
     } catch (e) {
-      // Handle errors
       print('Error fetching POS data: $e');
       setState(() => _isLoading = false);
     }
   }
+
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isOrderScreenVisible = false;
@@ -190,7 +210,7 @@ class ProductListView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(4.0), // Add padding around the image
                   child: Image.asset(
-                    product.imagePath,
+                    product.imageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Center(child: Icon(Icons.error)); // Fallback icon in case of an error
@@ -235,28 +255,52 @@ class ProductListView extends StatelessWidget {
 }
 
 class Product {
+  final int id;
   final String name;
-  final String barcode;
-  final String quantity;
   final String category;
   final String salePrice;
   final String purchasePrice;
-  final String description;
-  final String expirationDate;
-  final String imagePath;
+  final String imageUrl;
+  final int stockQuantity;
 
   Product({
+    required this.id,
     required this.name,
-    required this.barcode,
-    required this.quantity,
     required this.category,
     required this.salePrice,
     required this.purchasePrice,
-    required this.description,
-    required this.expirationDate,
-    required this.imagePath,
+    required this.imageUrl,
+    required this.stockQuantity,
   });
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    const String baseUrl = 'http://app.channab.com';
+
+    // Handle the image URL
+    String imageUrl = json['image_url'] != null && !json['image_url'].startsWith('http')
+        ? baseUrl + json['image_url']
+        : 'assets/images/default_image.png';
+
+    // Convert salePrice and purchasePrice to string and handle potential type issues
+    String salePrice = json['sale_price']?.toString() ?? '0.00';
+    String purchasePrice = json['purchase_price']?.toString() ?? '0.00';
+
+    // Convert stockQuantity to integer
+    int stockQuantity = int.tryParse(json['stock_quantity'].toString()) ?? 0;
+
+    return Product(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      category: json['category'] as String,
+      salePrice: salePrice,
+      purchasePrice: purchasePrice,
+      imageUrl: imageUrl,
+      stockQuantity: stockQuantity,
+    );
+  }
 }
+
+
 
 class Category {
   final String name;

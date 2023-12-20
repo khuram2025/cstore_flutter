@@ -1,29 +1,25 @@
-class _POSScreenState extends State<POSScreen> {
-  List<Product> products = [];
-  List<Category> categories = [];
-  bool _isLoading = true;
+class ApiService {
+  final String baseUrl = 'http://app.channab.com/';
 
-  @override
-  void initState() {
-    super.initState();
-    _loadPOSData();
-  }
+  // ... other methods ...
 
-  void _loadPOSData() async {
-    try {
-      var storeId = 1; // Replace with the actual store ID
-      var posData = await ApiService().fetchPOSData(storeId);
-      // Process posData to populate products and categories
-      setState(() {
-        products = posData['products'].map<Product>((json) => Product.fromJson(json)).toList();
-        categories = posData['categories'].map<Category>((name) => Category(name)).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      // Handle errors
-      print('Error fetching POS data: $e');
-      setState(() => _isLoading = false);
+  Future<List<dynamic>> fetchPOSData(int storeId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/pos/$storeId/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
+      if (data is Map<String, dynamic> && data.containsKey('products')) {
+        return data['products'] as List<dynamic>;
+      } else {
+        return []; // Return an empty list if 'products' key is not found
+      }
+    } else {
+      return []; // Return an empty list if response status code is not 200
     }
   }
-// ... Rest of your code ...
 }
