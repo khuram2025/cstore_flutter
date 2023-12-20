@@ -265,7 +265,15 @@ class ProductListView extends StatelessWidget {
               },
             ),
             title: Text(product.name),
-            subtitle: Text('product.details'),
+            subtitle: Row(
+              children: [
+                Text('Purchase: ${product.purchasePrice ?? "N/A"}'),
+                SizedBox(width: 8), // Small gap
+                Text('Sale: ${product.salePrice ?? "N/A"}'),
+                SizedBox(width: 8), // Small gap
+                Text('Stock: ${product.quantity ?? "N/A"}'),
+              ],
+            ),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
               if (Responsive.isMobile(context)) {
@@ -294,6 +302,7 @@ class Product {
   final String category;
   final String salePrice;
   final String purchasePrice;
+  final String current_stock;
   final String description;
   final String expirationDate;
   final String imageUrl;
@@ -308,6 +317,7 @@ class Product {
     this.purchasePrice = '80.00',
     this.description = 'This is a dummy product description.',
     this.expirationDate = '2024-01-01',
+    this.current_stock = '10',
     required this.imageUrl,
   });
 
@@ -323,6 +333,13 @@ class Product {
     return Product(
       id: json['id'],
       name: json['name'],
+      barcode: json['barcode'] ?? '0000000000',
+      quantity: json['current_stock']?.toString() ?? '0.0',
+      category: json['category'] ?? 'Dummy Category',
+      salePrice: json['sale_price']?.toString() ?? '000.00',
+      purchasePrice: json['purchase_price']?.toString() ?? '00.00',
+      description: json['description'] ?? 'This is a dummy product description.',
+      expirationDate: json['expiration_date'] ?? '2024-01-01',
       imageUrl: imageUrl,
       // Other fields remain as dummy data
     );

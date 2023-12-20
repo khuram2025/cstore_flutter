@@ -1,50 +1,23 @@
-class _POSScreenState extends State<POSScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool isOrderScreenVisible = false;
+class Product {
+  // ... other fields ...
 
-  void toggleOrderScreen() {
-    setState(() {
-      isOrderScreenVisible = !isOrderScreenVisible;
-    });
-  }
+  final String? salePrice;
+  final String? purchasePrice;
+  final String? quantity;
 
-  @override
-  Widget build(BuildContext context) {
-    bool isMobile = MediaQuery.of(context).size.width < 850;
-    bool shouldShowFloatingButton = isMobile && !isOrderScreenVisible;
+  // ... constructor ...
 
-    return Scaffold(
-      key: _scaffoldKey,
-      // Rest of your scaffold properties...
-      floatingActionButton: shouldShowFloatingButton
-          ? FloatingActionButton.extended(
-        onPressed: toggleOrderScreen,
-        label: Text('Proceed with order 3 Items \$5000'),
-        icon: Icon(Icons.shopping_cart),
-      )
-          : null,
-      bottomNavigationBar: shouldShowFloatingButton
-          ? BottomAppBar(
-        // BottomAppBar properties...
-      )
-          : null,
-      body: isOrderScreenVisible || !isMobile
-          ? OrderScreen() // Show OrderScreen when isOrderScreenVisible is true or on non-mobile screens
-          : SafeArea(
-        // Your SafeArea widget and its children...
-      ),
-    );
-  }
-}
-
-class OrderScreen extends StatelessWidget {
-  // Your OrderScreen implementation...
-
-  @override
-  Widget build(BuildContext context) {
-    // Build your order screen UI here
-    return Scaffold(
-      // The rest of your order screen content...
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: json['id'],
+      name: json['name'],
+      imageUrl: json['image_url'] != null
+          ? 'http://app.channab.com' + json['image_url']
+          : 'assets/images/default_image.png',
+      salePrice: json['sale_price']?.toString(),
+      purchasePrice: json['purchase_price']?.toString(),
+      quantity: json['current_stock']?.toString(),
+      // ... other fields ...
     );
   }
 }
