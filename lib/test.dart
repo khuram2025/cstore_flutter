@@ -1,23 +1,29 @@
-class Product {
-  // ... other fields ...
+class _POSScreenState extends State<POSScreen> {
+  List<Product> products = [];
+  List<Category> categories = [];
+  bool _isLoading = true;
 
-  final String? salePrice;
-  final String? purchasePrice;
-  final String? quantity;
-
-  // ... constructor ...
-
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
-      id: json['id'],
-      name: json['name'],
-      imageUrl: json['image_url'] != null
-          ? 'http://app.channab.com' + json['image_url']
-          : 'assets/images/default_image.png',
-      salePrice: json['sale_price']?.toString(),
-      purchasePrice: json['purchase_price']?.toString(),
-      quantity: json['current_stock']?.toString(),
-      // ... other fields ...
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadPOSData();
   }
+
+  void _loadPOSData() async {
+    try {
+      var storeId = 1; // Replace with the actual store ID
+      var posData = await ApiService().fetchPOSData(storeId);
+      // Process posData to populate products and categories
+      setState(() {
+        products = posData['products'].map<Product>((json) => Product.fromJson(json)).toList();
+        categories = posData['categories'].map<Category>((name) => Category(name)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Handle errors
+      print('Error fetching POS data: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+// ... Rest of your code ...
 }

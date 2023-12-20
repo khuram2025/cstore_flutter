@@ -42,4 +42,20 @@ class ApiService {
       throw Exception('Failed to fetch products. Status code: ${response.statusCode}');
     }
   }
+
+  Future<List<dynamic>> fetchPOSData(int storeId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/pos/$storeId/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body)['store_products'];
+    } else {
+      throw Exception('Failed to fetch POS data. Status code: ${response.statusCode}');
+    }
+  }
+
 }
