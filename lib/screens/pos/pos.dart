@@ -29,6 +29,9 @@ class _POSScreenState extends State<POSScreen> {
   }
   List<Product> products = [];
   List<Category> categories = [];
+  List<OrderItem?> selectedOrderItems = [];
+
+
   bool _isLoading = true;
 
   @override
@@ -61,15 +64,57 @@ class _POSScreenState extends State<POSScreen> {
       setState(() => _isLoading = false);
     }
   }
+  void addToOrder(Product product) {
+    setState(() {
+      // Finding the item or returning null if not found
+      OrderItem? existingItem = selectedOrderItems.firstWhere(
+            (item) => item?.product.id == product.id,
+        orElse: () => null,
+      );
+      if (existingItem != null) {
+        existingItem.quantity++;
+      } else {
+        selectedOrderItems.add(OrderItem(product: product));
+      }
+    });
+  }
 
+  void removeFromOrder(Product product) {
+    setState(() {
+      // Finding the item or returning null if not found
+      OrderItem? existingItem = selectedOrderItems.firstWhere(
+            (item) => item?.product.id == product.id,
+        orElse: () => null,
+      );
+      if (existingItem != null && existingItem.quantity > 1) {
+        existingItem.quantity--;
+      } else {
+        // Removing the item completely if quantity becomes 0
+        selectedOrderItems.removeWhere((item) => item?.product.id == product.id);
+      }
+    });
+  }
+  void onItemQuantityChanged(OrderItem updatedItem) {
+    setState(() {
+      // Find the index of the item in the list
+      int index = selectedOrderItems.indexWhere((item) => item?.product.id == updatedItem.product.id);
+      if (index != -1) {
+        selectedOrderItems[index] = updatedItem; // Update the item in the list
+      }
+    });
+  }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isOrderScreenVisible = false;
 
   void toggleOrderScreen() {
-    setState(() {
-      isOrderScreenVisible = !isOrderScreenVisible;
-    });
+    if (selectedOrderItems.isNotEmpty) { // Check if there are items in the order
+      setState(() {
+        isOrderScreenVisible = !isOrderScreenVisible;
+      });
+    } else {
+      // Optionally, show a message to the user that no items are selected
+    }
   }
 
 
@@ -90,12 +135,13 @@ class _POSScreenState extends State<POSScreen> {
       drawer: SideMenu(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: isOrderScreenVisible
-          ? null // Hide the floating action button when OrderScreen is visible
+          ? null
           : FloatingActionButton.extended(
         onPressed: toggleOrderScreen,
-        label: Text('Proceed with order 3 Items \$5000'),
+        label: Text('Proceed with order ${selectedOrderItems.length} Items \$[totalPrice]'),
         icon: Icon(Icons.shopping_cart),
       ),
+
       bottomNavigationBar: isOrderScreenVisible
           ? null // Hide the bottom bar when OrderScreen is visible
           : BottomAppBar(
@@ -114,7 +160,11 @@ class _POSScreenState extends State<POSScreen> {
         ),
       ),
       body: isOrderScreenVisible
-          ? OrderScreen() // Show OrderScreen when isOrderScreenVisible is true
+          ? OrderScreen(
+        selectedItems: selectedOrderItems.whereType<OrderItem>().toList(),
+        onItemQuantityChanged: onItemQuantityChanged,
+      )
+      // Filter out null items // Show OrderScreen when isOrderScreenVisible is true
           : SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +200,10 @@ class _POSScreenState extends State<POSScreen> {
                       ),
                     ),
                     SizedBox(height: defaultPadding),
-                    ProductListView(products: products), // Product list
+                    ProductListView(
+                        products: products,
+                      onProductClick: addToOrder,
+                    ), // Product list
                     // You can add more widgets here as per your POS screen requirement
                   ],
                 ),
@@ -162,8 +215,12 @@ class _POSScreenState extends State<POSScreen> {
             if (!Responsive.isMobile(context))
               Expanded(
                 flex: 2,
-                child: OrderScreen(),
+                child: OrderScreen(
+                  selectedItems: selectedOrderItems.whereType<OrderItem>().toList(),
+                  onItemQuantityChanged: onItemQuantityChanged,
+                ), // Filter out null items
               ),
+
           ],
         ),
       ),
@@ -174,8 +231,9 @@ class _POSScreenState extends State<POSScreen> {
 
 class ProductListView extends StatelessWidget {
   final List<Product> products;
+  final Function(Product) onProductClick;
 
-  ProductListView({Key? key, required this.products}) : super(key: key);
+  ProductListView({Key? key, required this.products, required this.onProductClick}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -198,55 +256,58 @@ class ProductListView extends StatelessWidget {
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
-        return Card(
-          elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0), // Add padding around the image
-                  child: Image.asset(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(child: Icon(Icons.error)); // Fallback icon in case of an error
-                    },
+        return GestureDetector(
+          onTap: () => onProductClick(product),
+          child: Card(
+            elevation: 2.0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0), // Add padding around the image
+                    child: Image.network(
+                      product.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(child: Icon(Icons.error)); // Fallback icon in case of an error
+                      },
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text('${product.salePrice} EGP', style: TextStyle(color: Colors.grey)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.add, color: Colors.green),
-                          onPressed: () {
-                            // TODO: Implement increase quantity
-                          },
-                        ),
-                        Text('1', style: TextStyle(fontSize: 16)),
-                        IconButton(
-                          icon: Icon(Icons.remove, color: Colors.red),
-                          onPressed: () {
-                            // TODO: Implement decrease quantity
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('${product.salePrice} EGP', style: TextStyle(color: Colors.grey)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.add, color: Colors.green),
+                            onPressed: () {
+                              // TODO: Implement increase quantity
+                            },
+                          ),
+                          Text('1', style: TextStyle(fontSize: 16)),
+                          IconButton(
+                            icon: Icon(Icons.remove, color: Colors.red),
+                            onPressed: () {
+                              // TODO: Implement decrease quantity
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

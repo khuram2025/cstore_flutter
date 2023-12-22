@@ -1,25 +1,32 @@
-class ApiService {
-  final String baseUrl = 'http://app.channab.com/';
+class ProductOrderItem extends StatelessWidget {
+  // ... existing fields ...
 
-  // ... other methods ...
-
-  Future<List<dynamic>> fetchPOSData(int storeId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/pos/$storeId/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-      },
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      // ... other properties ...
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(Icons.remove),
+            onPressed: () {
+              if (quantity > 1) {
+                quantity--;
+                onQuantityChanged();
+              }
+            },
+          ),
+          Text(quantity.toString()),
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              quantity++;
+              onQuantityChanged();
+            },
+          ),
+        ],
+      ),
     );
-
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      if (data is Map<String, dynamic> && data.containsKey('products')) {
-        return data['products'] as List<dynamic>;
-      } else {
-        return []; // Return an empty list if 'products' key is not found
-      }
-    } else {
-      return []; // Return an empty list if response status code is not 200
-    }
   }
 }

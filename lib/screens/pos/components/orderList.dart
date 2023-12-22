@@ -1,6 +1,16 @@
+import 'package:cstore_flutter/screens/pos/pos.dart';
 import 'package:flutter/material.dart';
 
 class OrderScreen extends StatelessWidget {
+  final List<OrderItem> selectedItems;
+  final Function(OrderItem) onItemQuantityChanged;
+
+  OrderScreen({
+    Key? key,
+    required this.selectedItems,
+    required this.onItemQuantityChanged,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -10,40 +20,22 @@ class OrderScreen extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              children: [
-                ListTile(
-                  title: Text('Total Products (3)'),
-                ),
-                ProductOrderItem(
-                  productName: 'RedBull',
-                  productPrice: '30 EGP',
-                  productImage: 'assets/images/6.jpg',
-                  quantity: 1,
-                ),
-                ProductOrderItem(
-                  productName: 'Water',
-                  productPrice: '50 EGP',
-                  productImage: 'assets/images/4.jpeg',
-                  quantity: 1,
-                ),
-                ProductOrderItem(
-                  productName: 'Oil',
-                  productPrice: '150 EGP',
-                  productImage: 'assets/images/5.jpeg',
-                  quantity: 1,
-                ),
-                ListTile(
-                  leading: Icon(Icons.person),
-                  title: Text('Select Customer (optional)'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                ),
-                ListTile(
-                  leading: Icon(Icons.payment),
-                  title: Text('Select Payment Method'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                ),
-              ],
+            child: ListView.builder(
+              itemCount: selectedItems.length,
+              itemBuilder: (context, index) {
+                final item = selectedItems[index];
+                return ProductOrderItem(
+                  productName: item.product.name,
+                  productPrice: '${item.product.salePrice} EGP',
+                  productImage: item.product.imageUrl,
+                  quantity: item.quantity,
+                  onQuantityChanged: () {
+                    // Call the onItemQuantityChanged with the updated item
+                    onItemQuantityChanged(item);
+                  },
+                );
+              },
+
             ),
           ),
           Divider(),
@@ -91,25 +83,26 @@ class OrderScreen extends StatelessWidget {
     );
   }
 }
-
 class ProductOrderItem extends StatelessWidget {
   final String productName;
   final String productPrice;
   final String productImage;
-  final int quantity;
+  int quantity;
+  final Function onQuantityChanged;
 
-  const ProductOrderItem({
+  ProductOrderItem({
     Key? key,
     required this.productName,
     required this.productPrice,
     required this.productImage,
     required this.quantity,
+    required this.onQuantityChanged,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Image.asset(productImage, width: 50, height: 50),
+      leading: Image.network(productImage, width: 50, height: 50),
       title: Text(productName),
       subtitle: Text(productPrice),
       trailing: Row(
@@ -118,18 +111,33 @@ class ProductOrderItem extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.remove),
             onPressed: () {
-              // TODO: Decrease quantity
+              if (quantity > 1) {
+                quantity--;
+                onQuantityChanged();
+              }
             },
           ),
           Text(quantity.toString()),
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
-              // TODO: Increase quantity
+              quantity++;
+              onQuantityChanged();
             },
           ),
         ],
       ),
     );
   }
+}
+
+
+class OrderItem {
+  final Product product;
+  int quantity;
+
+  OrderItem({required this.product, this.quantity = 1});
+
+  // Calculate the total price for this item
+  double get totalPrice => double.parse(product.salePrice) * quantity;
 }
