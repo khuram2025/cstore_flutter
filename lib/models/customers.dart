@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 
 class Customer {
+  final int id;
   final String? name;
   final String? email;
   final String? phone;
@@ -10,6 +11,7 @@ class Customer {
   final String? imagePath;
 
   Customer({
+    required this.id,
     this.name,
     this.email,
     this.phone,
@@ -20,6 +22,7 @@ class Customer {
   // Factory constructor for creating a new Customer instance from a map
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
+      id: json['id'],
       name: json['name'] as String?, // Assuming 'name' is the JSON field for the customer's name
       email: json['email'] as String?, // Same assumption for 'email'
       phone: json['phone'] as String?, // Same assumption for 'phone'

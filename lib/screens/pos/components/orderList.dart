@@ -1,4 +1,5 @@
 import 'package:cstore_flutter/API/api_service.dart';
+import 'package:cstore_flutter/models/customers.dart';
 import 'package:cstore_flutter/screens/pos/pos.dart';
 import 'package:flutter/material.dart';
 
@@ -60,12 +61,12 @@ class _OrderScreenState extends State<OrderScreen> {
     }).toList();
 
     return {
-      'customer_name': customerName,
-      'customer_phone_number': customerPhoneNumber,
+      'customer_id': selectedCustomer?.id, // Include the selected customer's ID
       'items': items,
       'total_price': _calculateTotalPrice().toString(), // Include the total price
     };
   }
+
 
 
   Widget _buildCustomerInfoContainer() {
@@ -105,6 +106,33 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
+  Customer? selectedCustomer; // Selected customer
+  List<Customer> customers = []; // List of customers
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCustomers();
+  }
+
+  Future<void> _fetchCustomers() async {
+    try {
+      var response = await ApiService().fetchCustomers(11); // Assuming this returns List<Customer>
+      setState(() {
+        customers = response;
+        selectedCustomer = customers.firstWhere((cust) => cust.name == 'Walk In Customer', orElse: () => customers.first);
+        _updateCustomerInfo(selectedCustomer);
+      });
+    } catch (e) {
+      // Handle errors
+    }
+  }
+  void _updateCustomerInfo(Customer? customer) {
+    setState(() {
+      customerName = customer?.name ?? 'Walk In Customer';
+      customerPhoneNumber = customer?.phone ?? '000'; // Assuming Customer model has phoneNumber
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +141,21 @@ class _OrderScreenState extends State<OrderScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildCustomerInfoContainer(),
+            DropdownButton<Customer>(
+              value: selectedCustomer,
+              onChanged: (Customer? newValue) {
+                _updateCustomerInfo(newValue); // Update customer info when a new customer is selected
+                setState(() {
+                  selectedCustomer = newValue;
+                });
+              },
+              items: customers.map<DropdownMenuItem<Customer>>((Customer customer) {
+                return DropdownMenuItem<Customer>(
+                  value: customer,
+                  child: Text(customer.name ?? 'N/A'),
+                );
+              }).toList(),
+            ),
             Text("Order Summary"),
             Expanded(
               child: ListView.builder(
