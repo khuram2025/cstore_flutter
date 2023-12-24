@@ -15,9 +15,13 @@ class _AddNewProductScreenState extends State<AddNewProductScreen> {
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
 
+  String _selectedCategory = '';
+  String _selectedCity = '';
+
   // Dummy data for categories and cities
   final List<String> categories = ['Electronics', 'Clothing', 'Books', 'Home & Garden'];
   final List<String> cities = ['New York', 'Los Angeles', 'Chicago', 'Houston'];
+
 
   @override
   void dispose() {
@@ -115,50 +119,75 @@ class _AddNewProductScreenState extends State<AddNewProductScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Category dropdown
-// Category dropdown
+                  // Category selection
                   Expanded(
                     child: TypeAheadFormField<String>(
                       textFieldConfiguration: TextFieldConfiguration(
                         controller: _categoryController,
-                        decoration: InputDecoration(labelText: 'Select Category'),
+                        decoration: InputDecoration(
+                          labelText: 'Select Category',
+                          suffixIcon: _selectedCategory.isNotEmpty
+                              ? IconButton(
+                            icon: Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _selectedCategory = '';
+                                _categoryController.clear();
+                              });
+                            },
+                          )
+                              : null,
+                        ),
                       ),
-                      suggestionsCallback: (pattern) async {
-                        return categories.where((item) => item.toLowerCase().contains(pattern.toLowerCase()));
+                      suggestionsCallback: (pattern) {
+                        return categories.where((item) => item.toLowerCase().contains(pattern.toLowerCase())).toList();
                       },
                       itemBuilder: (context, suggestion) {
                         return ListTile(title: Text(suggestion));
                       },
                       onSuggestionSelected: (suggestion) {
                         setState(() {
-                          _categoryController.text = suggestion.toString();
+                          _selectedCategory = suggestion.toString();
+                          _categoryController.text = _selectedCategory;
                         });
                       },
                     ),
                   ),
                   SizedBox(width: 10),
-
-// City dropdown
+                  // City selection
                   Expanded(
                     child: TypeAheadFormField<String>(
                       textFieldConfiguration: TextFieldConfiguration(
                         controller: _cityController,
-                        decoration: InputDecoration(labelText: 'Select City'),
+                        decoration: InputDecoration(
+                          labelText: 'Select City',
+                          suffixIcon: _selectedCity.isNotEmpty
+                              ? IconButton(
+                            icon: Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _selectedCity = '';
+                                _cityController.clear();
+                              });
+                            },
+                          )
+                              : null,
+                        ),
                       ),
-                      suggestionsCallback: (pattern) async {
-                        return cities.where((item) => item.toLowerCase().contains(pattern.toLowerCase()));
+                      suggestionsCallback: (pattern) {
+                        return cities.where((item) => item.toLowerCase().contains(pattern.toLowerCase())).toList();
                       },
                       itemBuilder: (context, suggestion) {
                         return ListTile(title: Text(suggestion));
                       },
                       onSuggestionSelected: (suggestion) {
                         setState(() {
-                          _cityController.text = suggestion.toString();
+                          _selectedCity = suggestion.toString();
+                          _cityController.text = _selectedCity;
                         });
                       },
                     ),
                   ),
-
 
                 ],
               ),
@@ -253,3 +282,4 @@ class ImagePreviewWidget extends StatelessWidget {
     );
   }
 }
+

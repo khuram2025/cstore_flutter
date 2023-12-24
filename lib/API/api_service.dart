@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:cstore_flutter/models/customers.dart';
+import 'package:cstore_flutter/screens/customer/customers_list.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -84,4 +86,27 @@ class ApiService {
     }
   }
 
+
+
+
+  Future<List<Customer>> fetchCustomers(int companyId) async {
+    final response = await http.get(
+      Uri.parse(baseUrl + 'companies/api/companies/11/customers/'), // Adjust URL as needed
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> customersJson = json.decode(response.body)['customers'];
+      return customersJson.map((json) => Customer.fromJson(json)).toList();
+    } else {
+      print('Error fetching customers');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      throw Exception('Failed to fetch customers. Status code: ${response.statusCode}');
+    }
+  }
 }
+
+

@@ -1,5 +1,7 @@
 
 
+import 'package:cstore_flutter/API/api_service.dart';
+import 'package:cstore_flutter/models/customers.dart';
 import 'package:cstore_flutter/screens/customer/components/customerDetailScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:cstore_flutter/responsive.dart';
@@ -19,17 +21,9 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   Customer? selectedCustomer;
   bool isAddingNewCustomer = false;
 
-  final List<Customer> customers = [
-    // Add your dummy Customer instances here
-    // Example:
-    Customer(
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '123-456-7890',
-      address: '123 Main Street, Anytown, AT 12345', imagePath: '',
-    ),
-    // ...
-  ];
+  Future<List<Customer>> fetchCustomers(int companyId) async {
+    return await ApiService().fetchCustomers(11); // Replace with the actual company ID
+  }
 
   void onCustomerSelected(Customer customer) {
     setState(() {
@@ -96,7 +90,25 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       ],
                     ),
                     SizedBox(height: defaultPadding),
-                    CustomerListView(customers: customers, onCustomerSelected: onCustomerSelected),
+                    // ...
+
+                    FutureBuilder<List<Customer>>(
+                      future: fetchCustomers(11), // Replace 11 with the actual company ID
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.hasData) {
+                          return CustomerListView(customers: snapshot.data!, onCustomerSelected: onCustomerSelected);
+                        } else {
+                          return Text('No customers found');
+                        }
+                      },
+                    ),
+
+// ...
+
                   ],
                 ),
               ),
@@ -117,6 +129,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 }
 
+
 class CustomerListView extends StatelessWidget {
   final List<Customer> customers;
   final Function(Customer) onCustomerSelected;
@@ -133,8 +146,8 @@ class CustomerListView extends StatelessWidget {
         final Customer customer = customers[index];
         return Card(
           child: ListTile(
-            title: Text(customer.name),
-            subtitle: Text(customer.email),
+            title: Text(customer.name ?? 'N/A'),
+            subtitle: Text(customer.email ?? 'N/A'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
               if (Responsive.isMobile(context)) {

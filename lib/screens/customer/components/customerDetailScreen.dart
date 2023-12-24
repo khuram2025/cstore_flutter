@@ -1,3 +1,4 @@
+import 'package:cstore_flutter/models/customers.dart';
 import 'package:cstore_flutter/screens/customer/components/customerOrdersDetailList.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // Ensure you have added flutter_svg in your pubspec.yaml
@@ -37,15 +38,19 @@ class CustomerDetailScreen extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: NetworkImage(customer.imagePath), // Replace with your customer image path
+                  backgroundImage: customer.imagePath != null
+                      ? NetworkImage(customer.imagePath!) as ImageProvider<Object>
+                      : AssetImage('path/to/default/image.jpg') as ImageProvider<Object>,
                   radius: 50,
                 ),
+
+
                 SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      customer.name,
+                      customer.name ?? 'N/A',
                       style: Theme.of(context).textTheme.headline5?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -132,15 +137,15 @@ class CustomerDetailScreen extends StatelessWidget {
                       children: [
                         ListTile(
                           leading: SvgPicture.asset(emailIcon),
-                          title: Text(customer.email),
+                          title: Text(customer.email ?? 'N/A'),
                         ),
                         ListTile(
                           leading: SvgPicture.asset(callIcon),
-                          title: Text(customer.phone),
+                          title: Text(customer.phone ?? 'N/A'),
                         ),
                         ListTile(
                           leading: Icon(Icons.location_on),
-                          title: Text(customer.address),
+                          title: Text(customer.address ?? 'N/A'),
                         ),
                       ],
                     ),
@@ -198,18 +203,3 @@ class ActionButton extends StatelessWidget {
   }
 }
 
-class Customer {
-  final String name;
-  final String email;
-  final String phone;
-  final String address;
-  final String imagePath; // Add imagePath to Customer class
-
-  Customer({
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.address,
-    required this.imagePath, // Initialize imagePath in constructor
-  });
-}
