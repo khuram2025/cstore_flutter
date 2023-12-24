@@ -63,4 +63,25 @@ class ApiService {
     }
   }
 
+  Future<dynamic> submitOrderData(int storeId, Map<String, dynamic> orderData) async {
+    // Print the order data to the console for debugging
+    print('Submitting order data: ${jsonEncode(orderData)}');
+
+    final response = await http.post(
+      Uri.parse(baseUrl + 'companies/api/submit-order/$storeId/'), // Updated endpoint with storeId
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(orderData),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      // Optionally, log the error or handle it as required
+      print('Error submitting order: ${response.body}');
+      throw Exception('Failed to submit order. Status code: ${response.statusCode}');
+    }
+  }
+
 }
