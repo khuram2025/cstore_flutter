@@ -43,11 +43,11 @@ class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
                 DataColumn(label: Text('Name')),
                 DataColumn(
                   label: Text('Date'),
-                  onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.date),
+                  onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.date ?? ''),
                 ),
                 DataColumn(
                   label: Text('Transaction'),
-                  onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.transactionType),
+                  onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.transactionType ?? ''),
                 ),
                 DataColumn(
                   label: Text('Total Amount'),
@@ -86,9 +86,9 @@ class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
       _sortColumnIndex = columnIndex;
       _isAscending = ascending;
       if (_isAscending) {
-        _ordersFuture.then((orders) => orders.sort((a, b) => getField(a ?? '').compareTo(getField(b ?? ''))));
+        _ordersFuture.then((orders) => orders.sort((a, b) => getField(a).compareTo(getField(b))));
       } else {
-        _ordersFuture.then((orders) => orders.sort((a, b) => getField(b ?? '').compareTo(getField(a ?? ''))));
+        _ordersFuture.then((orders) => orders.sort((a, b) => getField(b).compareTo(getField(a))));
       }
     });
   }

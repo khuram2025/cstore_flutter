@@ -19,6 +19,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Customer? selectedCustomer;
+
   bool isAddingNewCustomer = false;
 
   Future<List<Customer>> fetchCustomers(int companyId) async {
@@ -153,7 +154,7 @@ class CustomerListView extends StatelessWidget {
               if (Responsive.isMobile(context)) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => CustomerDetailScreen(customer: customer)),
+                  MaterialPageRoute(builder: (context) => CustomerDetailScreen(key: ValueKey(customer.id), customer: customer)),
                 );
               } else {
                 onCustomerSelected(customer);

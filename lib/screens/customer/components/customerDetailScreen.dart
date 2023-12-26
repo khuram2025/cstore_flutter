@@ -3,12 +3,38 @@ import 'package:cstore_flutter/screens/customer/components/customerOrdersDetailL
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // Ensure you have added flutter_svg in your pubspec.yaml
 
-class CustomerDetailScreen extends StatelessWidget {
+class CustomerDetailScreen extends StatefulWidget {
   final Customer customer;
 
   const CustomerDetailScreen({Key? key, required this.customer})
       : super(key: key);
 
+  @override
+  State<CustomerDetailScreen> createState() => _CustomerDetailScreenState();
+}
+
+class _CustomerDetailScreenState extends State<CustomerDetailScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void didUpdateWidget(CustomerDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.customer.id != oldWidget.customer.id) {
+      // Reset the tab index to 0 when a new customer is selected
+      _tabController.animateTo(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     // Dummy data for icons, replace with your actual assets
@@ -38,8 +64,8 @@ class CustomerDetailScreen extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: customer.imagePath != null
-                      ? NetworkImage(customer.imagePath!) as ImageProvider<Object>
+                  backgroundImage: widget.customer.imagePath != null
+                      ? NetworkImage(widget.customer.imagePath!) as ImageProvider<Object>
                       : AssetImage('path/to/default/image.jpg') as ImageProvider<Object>,
                   radius: 50,
                 ),
@@ -50,7 +76,7 @@ class CustomerDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      customer.name ?? 'N/A',
+                      widget.customer.name ?? 'N/A',
                       style: Theme.of(context).textTheme.headline5?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -83,6 +109,7 @@ class CustomerDetailScreen extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: TabBar(
+                  controller: _tabController,
                   isScrollable: true,
                   // Enable horizontal scrolling
                   indicatorColor: Colors.green,
@@ -129,6 +156,7 @@ class CustomerDetailScreen extends StatelessWidget {
             ),
             Expanded(
               child: TabBarView(
+                controller: _tabController,
                 children: [
                   // Customer Details Tab
                   SingleChildScrollView(
@@ -137,21 +165,21 @@ class CustomerDetailScreen extends StatelessWidget {
                       children: [
                         ListTile(
                           leading: SvgPicture.asset(emailIcon),
-                          title: Text(customer.email ?? 'N/A'),
+                          title: Text(widget.customer.email ?? 'N/A'),
                         ),
                         ListTile(
                           leading: SvgPicture.asset(callIcon),
-                          title: Text(customer.mobile ?? 'N/A'),
+                          title: Text(widget.customer.mobile ?? 'N/A'),
                         ),
                         ListTile(
                           leading: Icon(Icons.location_on),
-                          title: Text(customer.address ?? 'N/A'),
+                          title: Text(widget.customer.address ?? 'N/A'),
                         ),
                       ],
                     ),
                   ),
-                  customer.id != null
-                      ? CustomerOrdersDetailList(customerId: customer.id!)
+                  widget.customer.id != null
+                      ? CustomerOrdersDetailList(customerId: widget.customer.id!)
                       : Center(child: Text('Customer ID is unavailable')),
                   // Customer Orders Tab
 
