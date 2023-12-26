@@ -46,6 +46,21 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> fetchProductDetail(int storeProductId) async {
+    final response = await http.get(
+      Uri.parse(baseUrl + 'companies/api/store-products/$storeProductId/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body); // Return the product detail
+    } else {
+      throw Exception('Failed to fetch product details. Status code: ${response.statusCode}');
+    }
+  }
+
   Future<List<dynamic>> fetchPOSData(int storeId) async {
     final response = await http.get(
       Uri.parse(baseUrl +'companies/api/pos/$storeId/'),

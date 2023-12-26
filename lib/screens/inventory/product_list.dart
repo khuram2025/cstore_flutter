@@ -87,7 +87,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       return Center(child: CircularProgressIndicator());
     }
     Widget detailScreen = selectedProduct != null
-        ? ProductDetailScreen(product: selectedProduct!) // selectedProduct must be the correct Product type
+        ? selectedProduct != null ? ProductDetailScreen(product: selectedProduct!, productId: selectedProduct!.id) : AddNewProductScreen() // selectedProduct must be the correct Product type
         : AddNewProductScreen();
 
     return Scaffold(
@@ -229,7 +229,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             Expanded(
               flex: 2,
 
-              child: isAddingNewProduct ? AddNewProductScreen() : (selectedProduct != null ? ProductDetailScreen(product: selectedProduct!) : Container()),
+              child: isAddingNewProduct ? AddNewProductScreen() : (selectedProduct != null ? selectedProduct != null ? ProductDetailScreen(product: selectedProduct!, productId: selectedProduct!.id) : AddNewProductScreen() : Container()),
             )
           ],
         ),
@@ -277,16 +277,21 @@ class ProductListView extends StatelessWidget {
             trailing: Icon(Icons.chevron_right),
             onTap: () {
               if (Responsive.isMobile(context)) {
-                // If in mobile view, push the ProductDetailScreen onto the navigation stack
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProductDetailScreen(product: product)),
+                  MaterialPageRoute(
+                    builder: (context) => ProductDetailScreen(
+                      key: ValueKey(product.id), // Add this line
+                      product: product,
+                      productId: product.id,
+                    ),
+                  ),
                 );
               } else {
-                // For larger screens, use onProductSelected to update the state
                 onProductSelected(product);
               }
             },
+
           ),
         );
       },

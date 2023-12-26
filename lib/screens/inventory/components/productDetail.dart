@@ -1,12 +1,47 @@
+import 'package:cstore_flutter/API/api_service.dart';
 import 'package:cstore_flutter/screens/inventory/product_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // Ensure you have added flutter_svg in your pubspec.yaml
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final Product product;
+  final int productId;
 
-  const ProductDetailScreen({Key? key, required this.product})
+
+  const ProductDetailScreen({Key? key, required this.product, required this.productId})
       : super(key: key);
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  late Future<Map<String, dynamic>> productDetailFuture;
+
+  int selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    productDetailFuture = ApiService().fetchProductDetail(widget.productId);
+    selectedIndex = 0; // Reset to the first tab ('Overview')
+    _updateProductDetails();
+  }
+
+
+  void _updateProductDetails() {
+    productDetailFuture = ApiService().fetchProductDetail(widget.productId);
+    // Any other setup for new product
+  }
+
+  @override
+  void didUpdateWidget(ProductDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.productId != oldWidget.productId) {
+      _updateProductDetails();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +50,7 @@ class ProductDetailScreen extends StatelessWidget {
     final String smsIcon = 'assets/icons/sms.svg';
     final String callIcon = 'assets/icons/call.svg';
     final String houseImagePath =
-        product.imageUrl; // Use your Product's image path
+        widget.product.imageUrl; // Use your Product's image path
 
     return DefaultTabController(
       length: 6,
@@ -44,13 +79,13 @@ class ProductDetailScreen extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Text(
-              product.name,
+              widget.product.name,
               style: Theme.of(context).textTheme.headline5?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             Text(
-              product.description,
+              widget.product.description,
               style: Theme.of(context).textTheme.subtitle1,
             ),
             Divider(),
@@ -126,7 +161,39 @@ class ProductDetailScreen extends StatelessWidget {
               child: TabBarView(
                 children: [
                   Center(child: Text('Overview Content')),
-                  Center(child: Text('Stock Status Content')),
+                  FutureBuilder<Map<String, dynamic>>(
+                    future: productDetailFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (snapshot.hasData) {
+                        var productDetail = snapshot.data!;
+                        // Calculate low stock threshold percentage
+                        var lowStockThresholdPercentage = (productDetail['low_stock_threshold'] / productDetail['opening_stock']) * 100;
+                        return Column(
+                          children: [
+                            ListTile(
+                              title: Text('Opening Stock'),
+                              trailing: Text('${productDetail['opening_stock']}'),
+                            ),
+                            ListTile(
+                              title: Text('Low Stock Threshold (%)'),
+                              trailing: Text('${lowStockThresholdPercentage.toStringAsFixed(2)}%'),
+                            ),
+                            ListTile(
+                              title: Text('Current Stock'),
+                              trailing: Text('${productDetail['current_stock']}'),
+                            ),
+                            // Add more information as needed
+                          ],
+                        );
+                      } else {
+                        return Center(child: Text('No data available'));
+                      }
+                    },
+                  ),
                   Center(child: Text('Sale Content')),
                   Center(child: Text('Purchase Content')),
                   Center(child: Text('Analytics Content')),
