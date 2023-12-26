@@ -141,7 +141,7 @@ class CustomerDetailScreen extends StatelessWidget {
                         ),
                         ListTile(
                           leading: SvgPicture.asset(callIcon),
-                          title: Text(customer.phone ?? 'N/A'),
+                          title: Text(customer.mobile ?? 'N/A'),
                         ),
                         ListTile(
                           leading: Icon(Icons.location_on),
@@ -150,20 +150,11 @@ class CustomerDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  customer.id != null
+                      ? CustomerOrdersDetailList(customerId: customer.id!)
+                      : Center(child: Text('Customer ID is unavailable')),
                   // Customer Orders Tab
-          CustomerOrdersDetailList(
-            orders: [
-              Order(
-                imageUrl: 'https://example.com/image1.jpg', // Replace with actual image URL
-                customerName: 'John Doe',
-                mobileNumber: '123-456-7890',
-                date: '2023-03-15',
-                transactionType: 'Full',
-                totalAmount: 100.00,
-              ),
-// Add more Order objects with different details
-            ],
-          ),
+
 
           // Customer Activity Tab
                   Center(child: Text('Customer Activity Content')),

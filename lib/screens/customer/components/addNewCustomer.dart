@@ -1,3 +1,5 @@
+import 'package:cstore_flutter/API/api_service.dart';
+import 'package:cstore_flutter/models/customers.dart';
 import 'package:flutter/material.dart';
 
 class AddNewCustomerScreen extends StatefulWidget {
@@ -7,6 +9,7 @@ class AddNewCustomerScreen extends StatefulWidget {
 
 class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
   final _formKey = GlobalKey<FormState>();
+  final ApiService apiService = ApiService();
 
   // TextEditingControllers for form input
   TextEditingController nameController = TextEditingController();
@@ -97,18 +100,31 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 child: Text('Add Customer'),
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    // Here you can handle the submission of the form
-                    // For example, you can save the customer's data to a database
-                    print('Customer added: ${nameController.text}');
+                    try {
+                      await apiService.addCustomer(
+                        Customer(
+
+                          name: nameController.text,
+                          email: emailController.text,
+                          mobile: phoneController.text,
+                          address: addressController.text,
+                          storeId: 11,
+                        ),
+                      );
+                      // Optionally, clear the form or navigate away
+                    } catch (e) {
+                      print('Error adding customer: $e');
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.blue, // background (button) color
-                  onPrimary: Colors.white, // foreground (text) color
+                  primary: Colors.blue,
+                  onPrimary: Colors.white,
                 ),
               ),
+
             ],
           ),
         ),

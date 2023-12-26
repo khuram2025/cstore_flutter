@@ -130,7 +130,7 @@ class _OrderScreenState extends State<OrderScreen> {
   void _updateCustomerInfo(Customer? customer) {
     setState(() {
       customerName = customer?.name ?? 'Walk In Customer';
-      customerPhoneNumber = customer?.phone ?? '000'; // Assuming Customer model has phoneNumber
+      customerPhoneNumber = customer?.mobile ?? '000'; // Assuming Customer model has phoneNumber
     });
   }
 
