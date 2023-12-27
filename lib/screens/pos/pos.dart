@@ -186,14 +186,23 @@ class _POSScreenState extends State<POSScreen> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: categories.map((category) {
+                          bool isSelected = isActiveCategory(category);
                           return Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: ChoiceChip(
-                              label: Text(category.name),
-                              selected: isActiveCategory(category),
+                            child: FilterChip(
+                              backgroundColor: isSelected ? Colors.blueAccent: Colors.transparent,
+                              label: Text(category.name,
+                                style: TextStyle(
+                                  color: isSelected ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              selected: isSelected,
                               onSelected: (selected) {
                                 // TODO: Handle category selection
                               },
+                              shape: StadiumBorder(
+                                side: isSelected ? BorderSide(color: Colors.transparent) : BorderSide(color: Colors.grey.shade400),
+                              ),
                             ),
                           );
                         }).toList(),

@@ -194,7 +194,41 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       }
                     },
                   ),
-                  Center(child: Text('Sale Content')),
+                  FutureBuilder<Map<String, dynamic>>(
+                    future: productDetailFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (snapshot.hasData) {
+                        var productDetail = snapshot.data!;
+                        var sales = productDetail['sales'] as List<dynamic>; // Cast to List
+
+                        return ListView.builder(
+                          itemCount: sales.length,
+                          itemBuilder: (context, index) {
+                            var sale = sales[index];
+                            return ListTile(
+                              title: Text('Order ID: ${sale['order_id']}'),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Customer Name: ${sale['customer_name']}'),
+                                  Text('Mobile: ${sale['customer_mobile']}'),
+                                  Text('Quantity Sold: ${sale['quantity_sold']}'),
+                                  Text('Selling Price: ${sale['selling_price']}'),
+                                  Text('Total Price: ${sale['total_price']}'),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return Center(child: Text('No sales data available'));
+                      }
+                    },
+                  ),
                   Center(child: Text('Purchase Content')),
                   Center(child: Text('Analytics Content')),
                   Center(child: Text('Reports Content')),
