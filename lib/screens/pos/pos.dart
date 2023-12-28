@@ -28,8 +28,23 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
   List<Product> products = [];
+  List<Product> allProducts = [];
   List<Category> categories = [];
   List<OrderItem?> selectedOrderItems = [];
+  String activeCategory = 'All Categories';
+
+  void _filterProducts(String categoryName) {
+    setState(() {
+      activeCategory = categoryName;
+      if (categoryName != 'All Categories') {
+        // Apply filter on the allProducts to get the filtered list
+        products = allProducts.where((product) => product.category == categoryName).toList();
+      } else {
+        // Reset to the full products list if "All Categories" is selected
+        products = List.from(allProducts);
+      }
+    });
+  }
 
 
   bool _isLoading = true;
@@ -41,18 +56,23 @@ class _POSScreenState extends State<POSScreen> {
   }
 
   void _loadPOSData() async {
+    setState(() => _isLoading = true);
     try {
       var storeId = 11; // Replace with the actual store ID
       var response = await ApiService().fetchPOSData(storeId);
 
-      print("Response: $response"); // Debug: Print the entire response
-
-      // Check if the response is a list
-      if (response is List) {
-        List<dynamic> productData = response;
+      if (response is Map<String, dynamic>) {
+        List<dynamic> productData = response['products'] ?? [];
+        List<dynamic> categoryData = response['categories'] ?? [];
 
         setState(() {
-          products = productData.map((json) => Product.fromJson(json)).toList();
+          // Initially, set allProducts with the fetched data
+          allProducts = productData.map((json) => Product.fromJson(json)).toList();
+          // Set products to allProducts since by default we want to show all products
+          products = List.from(allProducts);
+          categories = categoryData.map((json) => Category.fromJson(json)).toList();
+          // Set activeCategory to 'All Categories' by default
+          activeCategory = 'All Categories';
           _isLoading = false;
         });
       } else {
@@ -64,6 +84,8 @@ class _POSScreenState extends State<POSScreen> {
       setState(() => _isLoading = false);
     }
   }
+
+
   void addToOrder(Product product) {
     setState(() {
       // Finding the item or returning null if not found
@@ -94,6 +116,7 @@ class _POSScreenState extends State<POSScreen> {
       }
     });
   }
+
   void onItemQuantityChanged(OrderItem updatedItem) {
     setState(() {
       // Find the index of the item in the list
@@ -185,27 +208,40 @@ class _POSScreenState extends State<POSScreen> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: categories.map((category) {
-                          bool isSelected = isActiveCategory(category);
-                          return Padding(
+                        mainAxisAlignment: MainAxisAlignment.start, // Align to the start of the row
+                        children: [
+                          Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: FilterChip(
-                              backgroundColor: isSelected ? Colors.blueAccent: Colors.transparent,
-                              label: Text(category.name,
-                                style: TextStyle(
-                                  color: isSelected ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              selected: isSelected,
+                            child: ChoiceChip(
+                              label: Text('All Categories'),
+                              selected: activeCategory == 'All Categories',
                               onSelected: (selected) {
-                                // TODO: Handle category selection
+                                _filterProducts('All Categories');
                               },
-                              shape: StadiumBorder(
-                                side: isSelected ? BorderSide(color: Colors.transparent) : BorderSide(color: Colors.grey.shade400),
+                              // Apply less rounded corners
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                          );
-                        }).toList(),
+                          ),
+                          ...categories.map((category) {
+                            bool isSelected = activeCategory == category.name;
+                            return Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: ChoiceChip(
+                                label: Text(category.name),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  _filterProducts(category.name);
+                                },
+                                // Apply less rounded corners
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ],
                       ),
                     ),
                     SizedBox(height: defaultPadding),
@@ -373,7 +409,18 @@ class Product {
 
 
 class Category {
-  final String name;
 
-  Category(this.name);
+  final String name;
+  // Add other fields as necessary
+
+  Category({ required this.name});
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+
+      name: json['title'] as String,
+      // Initialize other fields
+    );
+  }
 }
+
