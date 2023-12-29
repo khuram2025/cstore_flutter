@@ -1,110 +1,54 @@
-class _POSScreenState extends State<POSScreen> {
-  // ...
+Widget _buildClickableText(String text, Color textColor, VoidCallback onTap) {
+  return InkWell(
+    onTap: onTap,
+    child: Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Adjust padding to match height
+      decoration: text == 'Add' ? null : BoxDecoration(
+        color: textColor, // Background color for 'Discount' and 'Tax'
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: text == 'Add' ? textColor : Colors.white, // Text color
+        ),
+      ),
+    ),
+  );
+}
 
-  // All products fetched initially.
-  List<Product> allProducts = [];
-
-  // ...
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPOSData();
-  }
-
-  void _loadPOSData() async {
-    // ...
-    // When data is fetched successfully
-    setState(() {
-      allProducts = productData.map((json) => Product.fromJson(json)).toList();
-      // Initially, display all products
-      products = List.from(allProducts); // Make a copy of the list.
-      // ...
-    });
-  }
-
-  void _filterProducts(String categoryName) {
-    setState(() {
-      activeCategory = categoryName;
-      if (categoryName != 'All Categories') {
-        // Apply filter on the allProducts to get the filtered list
-        products = allProducts.where((product) => product.category == categoryName).toList();
-      } else {
-        // Reset to the full products list if "All Categories" is selected
-        products = List.from(allProducts);
-      }
-    });
-  }
-
-  // ...
-
-  @override
-  Widget build(BuildContext context) {
-    // ...
-    return Scaffold(
-      // ...
-      body: isOrderScreenVisible
-          ? OrderScreen(
-        // ...
-      )
-          : SafeArea(
-        child: Row(
-          // ...
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    // Your existing Scaffold code
+    body: Column(
+      // Your existing Column code
+      children: [
+        // Your existing children widgets
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            // ...
-            Expanded(
-              flex: 5,
-              child: SingleChildScrollView(
-                // ...
-                child: Column(
-                  children: [
-                    // ...
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: _buildCategoryChips(),
-                    ),
-                    SizedBox(height: defaultPadding),
-                    ProductListView(
-                      products: products,
-                      onProductClick: addToOrder,
-                    ),
-                    // ...
-                  ],
-                ),
-              ),
+            _buildClickableText(
+              'Add',
+              Color(0xFF9F9F9E), // Text color for 'Add'
+                  () {}, // You would implement what happens when 'Add' is tapped here
             ),
-            // ...
+            Spacer(), // This will push all other items to the right
+            _buildClickableText(
+              'Discount',
+              Color(0xFFFC8019),
+              _showAddDiscountDialog, // Call the discount dialog function when 'Discount' is tapped
+            ),
+            SizedBox(width: 8), // Spacing between the items
+            _buildClickableText(
+              'Tax',
+              Color(0xFFFC8019),
+              _showAddTaxDialog, // You would implement the tax dialog function here
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryChips() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        _buildChoiceChip('All Categories', activeCategory == 'All Categories'),
-        ...categories.map(
-              (category) => _buildChoiceChip(category.name, activeCategory == category.name),
-        ),
+        // Your existing Divider, Padding, and other widgets
       ],
-    );
-  }
-
-  Widget _buildChoiceChip(String categoryName, bool isSelected) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8),
-      child: ChoiceChip(
-        label: Text(categoryName),
-        selected: isSelected,
-        onSelected: (selected) {
-          _filterProducts(categoryName);
-        },
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }

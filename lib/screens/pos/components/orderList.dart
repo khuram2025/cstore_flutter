@@ -50,7 +50,17 @@ class _OrderScreenState extends State<OrderScreen> {
     }
     return totalPrice;
   }
+  void _onAddDiscountTap() {
+    // TODO: Implement functionality to add a discount
+  }
 
+  void _onAddCouponCodeTap() {
+    // TODO: Implement functionality to add a coupon code
+  }
+
+  void _onAddTaxTap() {
+    // TODO: Implement functionality to add tax
+  }
   Map<String, dynamic> _prepareOrderData() {
     List<Map<String, dynamic>> items = widget.selectedItems.map((item) {
       return {
@@ -174,6 +184,38 @@ class _OrderScreenState extends State<OrderScreen> {
                 },
               ),
             ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
+
+            height: 50, // Set the height of the container
+            decoration: BoxDecoration(
+              color: Color(0xFFFFF3E8), // A lighter shade similar to Amber Sae for the background
+              borderRadius: BorderRadius.circular(10), // Rounded corners
+
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _buildClickableText(
+                  'Add',
+                  Color(0xFF9F9F9E), // Text color for 'Add'
+                      () {}, // You would implement what happens when 'Add' is tapped here
+                ),
+                Spacer(), // This will push all other items to the right
+                _buildClickableText(
+                  'Discount',
+                  Color(0xFFFC8019),
+                  _showAddDiscountDialog, // Call the discount dialog function when 'Discount' is tapped
+                ),
+                SizedBox(width: 8), // Spacing between the items
+                _buildClickableText(
+                  'Tax',
+                  Color(0xFFFC8019),
+                  _showAddDiscountDialog, // You would implement the tax dialog function here
+                ),
+              ],
+            ),
+          ),
 
             Divider(),
             Padding(
@@ -217,8 +259,26 @@ class _OrderScreenState extends State<OrderScreen> {
         ),
       ),
     );
-  }
 
+  }
+  Widget _buildClickableText(String text, Color textColor, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Adjust padding to match height
+        decoration: text == 'Add' ? null : BoxDecoration(
+          color: textColor, // Background color for 'Discount' and 'Tax'
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: text == 'Add' ? textColor : Colors.white, // Text color
+          ),
+        ),
+      ),
+    );
+  }
   void _removeItemFromOrder(BuildContext context, int index) {
     // You may want to show a confirmation dialog before removing
     showDialog(
@@ -246,6 +306,127 @@ class _OrderScreenState extends State<OrderScreen> {
       },
     );
   }
+  void _showAddDiscountDialog() {
+    String selectedDiscountType = '%'; // Default to percentage
+    TextEditingController discountController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder( // Use StatefulBuilder to update the state inside the dialog
+          builder: (context, setState) {
+            return AlertDialog(
+              contentPadding: EdgeInsets.all(16.0),
+              content: Container(
+                height: 130,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add Discount',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        // Dollar button
+                        _buildDiscountTypeButton(setState, '\$', selectedDiscountType, discountController),
+                        SizedBox(width: 8),
+                        // Percentage button
+                        _buildDiscountTypeButton(setState, '%', selectedDiscountType, discountController),
+                        SizedBox(width: 8),
+                        // Input field
+                        Expanded(
+                          flex: 2,
+                          child: TextField(
+                            controller: discountController,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(vertical: 0), // Adjust field content padding
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(5),
+                                borderSide: BorderSide(color: Color(0xFF9f9f9e)),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Spacer(),
+                    // Cancel and Add buttons
+                    _buildActionButtons(context),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDiscountTypeButton(StateSetter setState, String type, String selectedDiscountType, TextEditingController controller) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          selectedDiscountType = type;
+          controller.clear(); // Clear the input when changing discount type
+        }),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 10), // Give some vertical padding
+          decoration: BoxDecoration(
+            color: selectedDiscountType == type ? Color(0xFFFC8019) : Colors.transparent,
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(color: selectedDiscountType == type ? Colors.transparent : Color(0xFF9f9f9e)),
+          ),
+          child: Text(
+            type,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: selectedDiscountType == type ? Colors.white : Color(0xFF9f9f9e),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionButton('Cancel', Color(0xFFFC8019), () {
+            Navigator.of(context).pop();
+          }),
+        ),
+        SizedBox(width: 8),
+        Expanded(
+          child: _buildActionButton('Add', Color(0xFF09aa29), () {
+            // TODO: Implement add logic
+            Navigator.of(context).pop();
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(String text, Color color, VoidCallback onPressed) {
+    return TextButton(
+      onPressed: onPressed,
+      child: Text(text, style: TextStyle(color: Colors.white)),
+      style: TextButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+      ),
+    );
+  }
+
+
+
+
 }
 class ProductOrderItem extends StatelessWidget {
   final Product product;
