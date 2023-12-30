@@ -1,11 +1,15 @@
 import 'package:cstore_flutter/API/api_service.dart';
 import 'package:cstore_flutter/models/customers.dart';
+import 'package:cstore_flutter/screens/pos/components/models.dart';
+import 'package:cstore_flutter/screens/pos/components/order_actions_row.dart';
+import 'package:cstore_flutter/screens/pos/components/product_tax_discount_row.dart';
 import 'package:cstore_flutter/screens/pos/pos.dart';
 import 'package:flutter/material.dart';
 
 class OrderScreen extends StatefulWidget {
   final List<OrderItem> selectedItems;
   final Function(OrderItem) onItemQuantityChanged;
+
 
   OrderScreen({
     Key? key,
@@ -18,13 +22,9 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  void _onItemQuantityChanged(OrderItem updatedItem) {
-    setState(() {
-      int index = widget.selectedItems.indexWhere((item) => item.product.id == updatedItem.product.id);
-      if (index != -1) {
-        widget.selectedItems[index] = updatedItem; // Update the item
-      }
-    });
+  void onDiscountChanged(double discountValue, bool isPercentage) {
+    // Logic to handle discount change
+    // Update state or perform calculations as needed
   }
   void _handleQuantityChange(int index, int newQuantity) {
     setState(() {
@@ -54,12 +54,8 @@ class _OrderScreenState extends State<OrderScreen> {
     // TODO: Implement functionality to add a discount
   }
 
-  void _onAddCouponCodeTap() {
-    // TODO: Implement functionality to add a coupon code
-  }
-
-  void _onAddTaxTap() {
-    // TODO: Implement functionality to add tax
+  void handleDiscountChange(double discountValue, bool isPercentage) {
+    // Implement your logic for discount change
   }
   Map<String, dynamic> _prepareOrderData() {
     List<Map<String, dynamic>> items = widget.selectedItems.map((item) {
@@ -180,6 +176,12 @@ class _OrderScreenState extends State<OrderScreen> {
                     quantity: item.quantity,
                     onQuantityChange: (newQuantity) => _handleQuantityChange(index, newQuantity),
                     onRemove: () => _removeItemFromOrder(context, index),
+                    taxOptions: ["Tax 1", "Tax 2", "Tax 3"],
+                    onTaxSelected: (selectedTax) {
+                      // Handle tax selection
+                    },
+                    onDiscountChanged: handleDiscountChange,
+                    discountController: TextEditingController(),
                   );
                 },
               ),
@@ -193,27 +195,12 @@ class _OrderScreenState extends State<OrderScreen> {
               borderRadius: BorderRadius.circular(10), // Rounded corners
 
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                _buildClickableText(
-                  'Add',
-                  Color(0xFF9F9F9E), // Text color for 'Add'
-                      () {}, // You would implement what happens when 'Add' is tapped here
-                ),
-                Spacer(), // This will push all other items to the right
-                _buildClickableText(
-                  'Discount',
-                  Color(0xFFFC8019),
-                  _showAddDiscountDialog, // Call the discount dialog function when 'Discount' is tapped
-                ),
-                SizedBox(width: 8), // Spacing between the items
-                _buildClickableText(
-                  'Tax',
-                  Color(0xFFFC8019),
-                  _showAddDiscountDialog, // You would implement the tax dialog function here
-                ),
-              ],
+            child: OrderActionsRow(
+              onAddTap: () {
+                // TODO: Implement add action
+              },
+              onDiscountTap: _showAddDiscountDialog,
+              onTaxTap: _showAddDiscountDialog, // Assuming you have a method for this
             ),
           ),
 
@@ -261,24 +248,7 @@ class _OrderScreenState extends State<OrderScreen> {
     );
 
   }
-  Widget _buildClickableText(String text, Color textColor, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Adjust padding to match height
-        decoration: text == 'Add' ? null : BoxDecoration(
-          color: textColor, // Background color for 'Discount' and 'Tax'
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: text == 'Add' ? textColor : Colors.white, // Text color
-          ),
-        ),
-      ),
-    );
-  }
+
   void _removeItemFromOrder(BuildContext context, int index) {
     // You may want to show a confirmation dialog before removing
     showDialog(
@@ -428,7 +398,10 @@ class _OrderScreenState extends State<OrderScreen> {
 
 
 }
-class ProductOrderItem extends StatelessWidget {
+
+
+
+class ProductOrderItem extends StatefulWidget {
   final Product product;
   final String productName;
   final String productPrice;
@@ -436,6 +409,11 @@ class ProductOrderItem extends StatelessWidget {
   int quantity;
   final void Function(int) onQuantityChange;
   final void Function() onRemove;
+
+  final List<String> taxOptions;
+  final void Function(String) onTaxSelected;
+  final void Function(double, bool) onDiscountChanged;
+  final TextEditingController discountController;
 
   ProductOrderItem({
     Key? key,
@@ -446,48 +424,66 @@ class ProductOrderItem extends StatelessWidget {
     required this.quantity,
     required this.onQuantityChange,
     required this.onRemove,
+    required this.taxOptions,
+    required this.onTaxSelected,
+    required this.onDiscountChanged,
+    required this.discountController,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Image.network(productImage, width: 50, height: 50),
-      title: Text(productName),
-      subtitle: Text(productPrice),
-      trailing: Wrap(
-        spacing: 12, // space between two icons
-        children: <Widget>[
-          IconButton(
-            icon: Icon(Icons.remove),
-            onPressed: quantity > 1 ? () {
-              onQuantityChange(quantity - 1); // Pass the updated quantity
-            } : null,
-          ),
-          Text(quantity.toString()),
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              onQuantityChange(quantity + 1); // Pass the updated quantity
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: onRemove, // Call the onRemove function when this button is pressed
-          ),
-        ],
-      ),
-    );
+  _ProductOrderItemState createState() => _ProductOrderItemState();
+}
+
+class _ProductOrderItemState extends State<ProductOrderItem> {
+  bool isExpanded = false; // Flag to control visibility of ProductTaxDiscountRow
+
+  void _toggleExpansion() {
+    setState(() {
+      isExpanded = !isExpanded;
+    });
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          onTap: _toggleExpansion, // Toggle expansion on tap
+          leading: Image.network(widget.productImage, width: 50, height: 50),
+          title: Text(widget.productName),
+          subtitle: Text(widget.productPrice),
+          trailing: Wrap(
+            spacing: 12,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.remove),
+                onPressed: widget.quantity > 1 ? () => widget.onQuantityChange(widget.quantity - 1) : null,
+              ),
+              Text(widget.quantity.toString()),
+              IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () => widget.onQuantityChange(widget.quantity + 1),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: widget.onRemove,
+              ),
+            ],
+          ),
+        ),
+        if (isExpanded) // Show ProductTaxDiscountRow only if isExpanded is true
+          ProductTaxDiscountRow(
+            taxOptions: widget.taxOptions,
+            onTaxSelected: widget.onTaxSelected,
+            onDiscountChanged: widget.onDiscountChanged,
+            discountController: widget.discountController,
+          ),
+      ],
+    );
+  }
 }
 
 
-class OrderItem {
-  final Product product;
-  int quantity;
 
-  OrderItem({required this.product, this.quantity = 1});
 
-  // Calculate the total price for this item
-  double get totalPrice => double.parse(product.salePrice) * quantity;
-}
+
