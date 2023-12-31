@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'models.dart';
+
 class ProductTaxDiscountRow extends StatefulWidget {
-  final List<String> taxOptions; // Dummy data for tax options
-  final void Function(String) onTaxSelected;
+  final List<TaxOption> taxOptions;  // Dummy data for tax options
+  final void Function(TaxOption) onTaxSelected;
   final void Function(double, bool) onDiscountChanged;
   final TextEditingController discountController;
 
@@ -20,6 +22,7 @@ class ProductTaxDiscountRow extends StatefulWidget {
 
 class _ProductTaxDiscountRowState extends State<ProductTaxDiscountRow> {
   bool isPercentage = true; // Tracks whether the discount is a percentage or amount
+  TaxOption? selectedTaxOption;
 
   void _toggleDiscountType(bool percentageSelected) {
     setState(() {
@@ -52,20 +55,26 @@ class _ProductTaxDiscountRowState extends State<ProductTaxDiscountRow> {
           borderRadius: BorderRadius.circular(5),
         ),
         child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
+          child: DropdownButton<TaxOption>(
             isExpanded: true,
+            value: selectedTaxOption, // You need to manage this state
             hint: Text("Select Tax"),
-            items: widget.taxOptions.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
+            items: widget.taxOptions.map((TaxOption taxOption) {
+              return DropdownMenuItem<TaxOption>(
+                value: taxOption,
+                // Display both name and rate in the dropdown item
+                child: Text("${taxOption.name} (${taxOption.rate}%)"),
               );
             }).toList(),
             onChanged: (newValue) {
-              widget.onTaxSelected(newValue ?? "");
+              setState(() {
+                selectedTaxOption = newValue;
+              });
+              widget.onTaxSelected(newValue!); // Pass the selected TaxOption object
             },
           ),
         ),
+
       ),
     );
   }

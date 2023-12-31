@@ -22,6 +22,34 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
+
+  double discountValue = 0.0;
+  bool isDiscountPercentage = true;
+
+  double _calculateDiscount() {
+    if (isDiscountPercentage) {
+      return _calculateSubtotal() * (discountValue / 100);
+    }
+    return discountValue;
+  }
+
+  TaxOption? selectedTaxOption;
+  double _calculateTax() {
+    if (selectedTaxOption != null) {
+      return _calculateSubtotal() * (selectedTaxOption!.rate / 100);
+    }
+    return 0.0;
+  }
+
+  double _calculateTotal() {
+    double subtotal = _calculateSubtotal();
+    double discount = _calculateDiscount();
+    double tax = _calculateTax();
+    return subtotal - discount + tax;
+
+  }
+
+  List<TaxOption> taxOptionsList = [];
   void onDiscountChanged(double discountValue, bool isPercentage) {
     // Logic to handle discount change
     // Update state or perform calculations as needed
@@ -69,9 +97,14 @@ class _OrderScreenState extends State<OrderScreen> {
     return {
       'customer_id': selectedCustomer?.id, // Include the selected customer's ID
       'items': items,
-      'total_price': _calculateTotalPrice().toString(), // Include the total price
+      'subtotal': _calculateSubtotal().toStringAsFixed(2),
+      'discount_value': discountValue.toStringAsFixed(2),
+      'is_discount_percentage': isDiscountPercentage,
+      'tax_ids': selectedTaxOption != null ? [selectedTaxOption!.id] : [],
+      'total_price': _calculateTotal().toStringAsFixed(2) // Include the total price after discount and taxes
     };
   }
+
 
 
 
@@ -119,6 +152,7 @@ class _OrderScreenState extends State<OrderScreen> {
   void initState() {
     super.initState();
     _fetchCustomers();
+    _fetchTaxOptions();
   }
 
   Future<void> _fetchCustomers() async {
@@ -133,12 +167,36 @@ class _OrderScreenState extends State<OrderScreen> {
       // Handle errors
     }
   }
+  Future<void> _fetchTaxOptions() async {
+    try {
+      List<TaxOption> taxes = await ApiService().fetchTaxes(11);
+      setState(() {
+        taxOptionsList = taxes;
+      });
+    } catch (e) {
+      // Handle errors
+      print('Error fetching taxes: $e');
+    }
+  }
+
+
+
+
+
   void _updateCustomerInfo(Customer? customer) {
     setState(() {
       customerName = customer?.name ?? 'Walk In Customer';
       customerPhoneNumber = customer?.mobile ?? '000'; // Assuming Customer model has phoneNumber
     });
   }
+  double _calculateSubtotal() {
+    double subtotal = 0.0;
+    for (var item in widget.selectedItems) {
+      subtotal += double.parse(item.product.salePrice) * item.quantity;
+    }
+    return subtotal;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -176,9 +234,9 @@ class _OrderScreenState extends State<OrderScreen> {
                     quantity: item.quantity,
                     onQuantityChange: (newQuantity) => _handleQuantityChange(index, newQuantity),
                     onRemove: () => _removeItemFromOrder(context, index),
-                    taxOptions: ["Tax 1", "Tax 2", "Tax 3"],
-                    onTaxSelected: (selectedTax) {
-                      // Handle tax selection
+                    taxOptions: taxOptionsList,
+                    onTaxSelected: (TaxOption selectedTax) {
+                      // Handle tax selection with TaxOption object
                     },
                     onDiscountChanged: handleDiscountChange,
                     discountController: TextEditingController(),
@@ -205,6 +263,7 @@ class _OrderScreenState extends State<OrderScreen> {
           ),
 
             Divider(),
+
             Padding(
               padding: EdgeInsets.all(16.0),
               child: Column(
@@ -213,14 +272,62 @@ class _OrderScreenState extends State<OrderScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Subtotal'),
-                      Text('215 EGP'),
+                      Text('${_calculateSubtotal().toStringAsFixed(2)} EGP'),
                     ],
                   ),
+                  if (discountValue > 0) // Display only if discount is applied
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Discount'),
+                        SizedBox(width: 8), // Gap between label and discount value
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Text(
+                                isDiscountPercentage ? '$discountValue%' : '\$${discountValue.toStringAsFixed(2)}',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                              Spacer(), // Pushes the negative discount amount to the end
+                              Text('-\$${_calculateDiscount().toStringAsFixed(2)}', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Tax (14%)'),
-                      Text('30 EGP'),
+                      Text('Tax'),
+                      SizedBox(width: 8), // Gap between label and dropdown
+                      // Wrap the dropdown in a limited width Container
+                      Container(
+                        constraints: BoxConstraints(maxWidth: 150), // Set a maximum width for the dropdown
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<TaxOption>(
+                            isDense: true, // Reduce the vertical size of the button
+                            value: selectedTaxOption,
+                            onChanged: (newValue) {
+                              setState(() {
+                                selectedTaxOption = newValue;
+                              });
+                            },
+                            items: taxOptionsList.map((TaxOption tax) {
+                              return DropdownMenuItem<TaxOption>(
+                                value: tax,
+                                child: Text(
+                                  "${tax.name} (${tax.rate}%)",
+                                  style: TextStyle(color: Color(0xFFFC8019)),
+                                ),
+                              );
+                            }).toList(),
+                            icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+                          ),
+                        ),
+                      ),
+                      Spacer(), // Pushes the tax value to the end
+                      Text('${_calculateTax().toStringAsFixed(2)} EGP', style: TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   SizedBox(height: 8),
@@ -228,12 +335,12 @@ class _OrderScreenState extends State<OrderScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Total'),
-                      Text('245 EGP', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('${_calculateTotal().toStringAsFixed(2)} EGP', style: TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   SizedBox(height: 16),
                   SizedBox(
-                    width: double.infinity, // make button full width
+                    width: double.infinity,
                     child: ElevatedButton(
                       child: Text('Checkout'),
                       onPressed: _submitOrder,
@@ -277,13 +384,14 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
   void _showAddDiscountDialog() {
-    String selectedDiscountType = '%'; // Default to percentage
+    // Default to percentage
+    String selectedDiscountType = '%';
     TextEditingController discountController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder( // Use StatefulBuilder to update the state inside the dialog
+        return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
               contentPadding: EdgeInsets.all(16.0),
@@ -292,29 +400,20 @@ class _OrderScreenState extends State<OrderScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Add Discount',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    Text('Add Discount', style: TextStyle(fontWeight: FontWeight.bold)),
                     Row(
                       children: [
-                        // Dollar button
                         _buildDiscountTypeButton(setState, '\$', selectedDiscountType, discountController),
                         SizedBox(width: 8),
-                        // Percentage button
                         _buildDiscountTypeButton(setState, '%', selectedDiscountType, discountController),
                         SizedBox(width: 8),
-                        // Input field
                         Expanded(
                           flex: 2,
                           child: TextField(
                             controller: discountController,
                             decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(vertical: 0), // Adjust field content padding
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(color: Color(0xFF9f9f9e)),
-                              ),
+                              contentPadding: EdgeInsets.symmetric(vertical: 0),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide(color: Color(0xFF9f9f9e))),
                               filled: true,
                               fillColor: Colors.white,
                             ),
@@ -323,9 +422,8 @@ class _OrderScreenState extends State<OrderScreen> {
                         ),
                       ],
                     ),
-                    Spacer(),
-                    // Cancel and Add buttons
-                    _buildActionButtons(context),
+                    SizedBox(height: 16),
+                    _buildActionButtons(context, setState, discountController, selectedDiscountType),
                   ],
                 ),
               ),
@@ -341,10 +439,9 @@ class _OrderScreenState extends State<OrderScreen> {
       child: GestureDetector(
         onTap: () => setState(() {
           selectedDiscountType = type;
-          controller.clear(); // Clear the input when changing discount type
         }),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 10), // Give some vertical padding
+          padding: EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selectedDiscountType == type ? Color(0xFFFC8019) : Colors.transparent,
             borderRadius: BorderRadius.circular(5),
@@ -353,16 +450,14 @@ class _OrderScreenState extends State<OrderScreen> {
           child: Text(
             type,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: selectedDiscountType == type ? Colors.white : Color(0xFF9f9f9e),
-            ),
+            style: TextStyle(color: selectedDiscountType == type ? Colors.white : Color(0xFF9f9f9e)),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, StateSetter setState, TextEditingController discountController, String selectedDiscountType) {
     return Row(
       children: [
         Expanded(
@@ -373,7 +468,11 @@ class _OrderScreenState extends State<OrderScreen> {
         SizedBox(width: 8),
         Expanded(
           child: _buildActionButton('Add', Color(0xFF09aa29), () {
-            // TODO: Implement add logic
+            double enteredDiscount = double.tryParse(discountController.text) ?? 0.0;
+            setState(() {
+              discountValue = enteredDiscount;
+              isDiscountPercentage = selectedDiscountType == '%';
+            });
             Navigator.of(context).pop();
           }),
         ),
@@ -395,8 +494,6 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
 
-
-
 }
 
 
@@ -409,9 +506,8 @@ class ProductOrderItem extends StatefulWidget {
   int quantity;
   final void Function(int) onQuantityChange;
   final void Function() onRemove;
-
-  final List<String> taxOptions;
-  final void Function(String) onTaxSelected;
+  final List<TaxOption> taxOptions;
+  final void Function(TaxOption) onTaxSelected;
   final void Function(double, bool) onDiscountChanged;
   final TextEditingController discountController;
 

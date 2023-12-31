@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cstore_flutter/models/customers.dart';
 import 'package:cstore_flutter/screens/customer/components/customerOrdersDetailList.dart';
 import 'package:cstore_flutter/screens/customer/customers_list.dart';
+import 'package:cstore_flutter/screens/pos/components/models.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -116,6 +117,26 @@ class ApiService {
       throw Exception('Failed to fetch customers. Status code: ${response.statusCode}');
     }
   }
+
+  Future<List<TaxOption>> fetchTaxes(int companyId) async {
+    final response = await http.get(
+      Uri.parse(baseUrl + 'companies/api/companies/$companyId/taxes/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      var decodedResponse = json.decode(response.body);
+      print(decodedResponse); // Print the decoded JSON for debugging
+
+      List<dynamic> taxesJson = decodedResponse['taxes']; // Assuming 'taxes' is the key
+      return taxesJson.map((json) => TaxOption.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to fetch taxes. Status code: ${response.statusCode}');
+    }
+  }
+
 
   Future<Customer> fetchCustomerDetails(int companyId, int customerId) async {
     final response = await http.get(
