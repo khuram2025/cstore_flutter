@@ -1,11 +1,12 @@
 import 'package:cstore_flutter/API/api_service.dart';
 import 'package:cstore_flutter/models/customers.dart';
+import 'package:cstore_flutter/screens/pos/components/invoice.dart';
 import 'package:cstore_flutter/screens/pos/components/models.dart';
 import 'package:cstore_flutter/screens/pos/components/order_actions_row.dart';
 import 'package:cstore_flutter/screens/pos/components/product_tax_discount_row.dart';
 import 'package:cstore_flutter/screens/pos/pos.dart';
 import 'package:flutter/material.dart';
-
+import 'dart:convert';
 import '../../../ui.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -66,12 +67,42 @@ class _OrderScreenState extends State<OrderScreen> {
   Future<void> _submitOrder() async {
     var orderData = _prepareOrderData();
     try {
-      var response = await ApiService().submitOrderData(11, orderData);
-      // Handle the response here
+      var responseData = await ApiService().submitOrderData(11, orderData);
+      if (responseData != null && responseData.containsKey('order_id')) {
+        Map<String, dynamic> invoiceData = {
+          'storeName': 'Your Store Name', // Replace with actual store name
+          'orderId': responseData['order_id'], // Assuming 'order_id' is returned in response
+          'date': DateTime.now().toString(),
+          'customerName': selectedCustomer?.name ?? 'Walk In Customer',
+          'items': widget.selectedItems.map((item) => {
+            'name': item.product.name,
+            'quantity': item.quantity,
+            'price': item.product.salePrice
+          }).toList(),
+          'subtotal': _calculateSubtotal().toStringAsFixed(2),
+          'discountValue': discountValue.toStringAsFixed(2), // This will convert it to a string with a decimal point
+
+          'isDiscountPercentage': isDiscountPercentage, // Add this line
+          'tax': _calculateTax().toStringAsFixed(2),
+          'total': _calculateTotal().toStringAsFixed(2)
+        };
+
+        print('Invoice Data Prepared for InvoiceScreen: $invoiceData');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => InvoiceScreen(data: invoiceData)),
+        );
+      } else {
+        // Handle non-successful response
+        print('Error submitting order: Invalid response data');
+      }
     } catch (e) {
       // Handle any errors here
+      print('Error submitting order: $e');
     }
   }
+
+
 
   double _calculateTotalPrice() {
     double totalPrice = 0.0;
@@ -347,13 +378,14 @@ class _OrderScreenState extends State<OrderScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
                         _buildPaymentOption('Cash', Icons.monetization_on, grey, () {
-                          // Handle Cash Payment Logic
+                          _submitOrder();
                         }),
                         _buildPaymentOption('Credit', Icons.credit_card, amberSea, () {
                           // Handle Credit Payment Logic
                         }),
                         _buildPaymentOption('Multiple Pay', Icons.payment, green, () {
-                          // Handle Multiple Payment Logic
+                          _showMultiplePayDialog(_calculateTotal());
+
                         }),
                       ],
                     ),
@@ -478,6 +510,82 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
+  void _showMultiplePayDialog(double totalAmount) {
+    TextEditingController cashController = TextEditingController();
+    TextEditingController creditController = TextEditingController();
+
+    // Function to calculate remaining amount
+    double calculateRemainingAmount() {
+      double cashPayment = double.tryParse(cashController.text) ?? 0.0;
+      double creditPayment = double.tryParse(creditController.text) ?? 0.0;
+      return totalAmount - (cashPayment + creditPayment);
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(  // Use StatefulBuilder to update the dialog's content
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Multiple Pay', style: TextStyle(color: amberSea)),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text('Total Order Amount: \$${totalAmount.toStringAsFixed(2)}', style: TextStyle(color: grey)),
+                    SizedBox(height: 10),
+                    _buildPaymentField('Cash Payment', cashController, Icons.monetization_on, grey, () {
+                      setState(() {});  // Update the state to refresh remaining amount
+                    }),
+
+                    SizedBox(height: 10),
+                    Text('Remaining Amount: \$${calculateRemainingAmount().toStringAsFixed(2)}', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel', style: TextStyle(color: grey)),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Confirm', style: TextStyle(color: green)),
+                  onPressed: () {
+                    // Handle the payment logic here
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentField(String label, TextEditingController controller, IconData icon, Color color, VoidCallback onTextChanged) {
+    return TextField(
+      controller: controller,
+      onChanged: (_) => onTextChanged(),
+      decoration: InputDecoration(
+        icon: Icon(icon, color: color),
+        labelText: label,
+        labelStyle: TextStyle(color: color),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: color),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: color),
+        ),
+        border: UnderlineInputBorder(
+          borderSide: BorderSide(color: color),
+        ),
+      ),
+      keyboardType: TextInputType.number,
+    );
+  }
+
 
   Widget _buildDiscountTypeButton(StateSetter setState, String type, String selectedDiscountType, TextEditingController controller) {
     return Expanded(
@@ -501,8 +609,6 @@ class _OrderScreenState extends State<OrderScreen> {
       ),
     );
   }
-
-
 
   Widget _buildActionButtons(BuildContext context, StateSetter setState, TextEditingController discountController, String selectedDiscountType) {
     return Row(
