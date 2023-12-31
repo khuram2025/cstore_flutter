@@ -6,6 +6,8 @@ import 'package:cstore_flutter/screens/pos/components/product_tax_discount_row.d
 import 'package:cstore_flutter/screens/pos/pos.dart';
 import 'package:flutter/material.dart';
 
+import '../../../ui.dart';
+
 class OrderScreen extends StatefulWidget {
   final List<OrderItem> selectedItems;
   final Function(OrderItem) onItemQuantityChanged;
@@ -339,11 +341,21 @@ class _OrderScreenState extends State<OrderScreen> {
                     ],
                   ),
                   SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      child: Text('Checkout'),
-                      onPressed: _submitOrder,
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        _buildPaymentOption('Cash', Icons.monetization_on, grey, () {
+                          // Handle Cash Payment Logic
+                        }),
+                        _buildPaymentOption('Credit', Icons.credit_card, amberSea, () {
+                          // Handle Credit Payment Logic
+                        }),
+                        _buildPaymentOption('Multiple Pay', Icons.payment, green, () {
+                          // Handle Multiple Payment Logic
+                        }),
+                      ],
                     ),
                   ),
                 ],
@@ -433,6 +445,39 @@ class _OrderScreenState extends State<OrderScreen> {
       },
     );
   }
+  Widget _buildPaymentOption(String title, IconData icon, Color bgColor, VoidCallback onPressed) {
+    return Expanded(
+      child: Padding( // Add padding for gap between boxes
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: InkWell(
+          onTap: onPressed,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 5.0), // Reduced vertical padding
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(8), // Slightly reduced border radius
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(icon, color: Colors.white, size: 14), // Reduced icon size
+                SizedBox(height: 4), // Reduced gap between icon and text
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14, // Reduced font size for text
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildDiscountTypeButton(StateSetter setState, String type, String selectedDiscountType, TextEditingController controller) {
     return Expanded(
@@ -456,6 +501,8 @@ class _OrderScreenState extends State<OrderScreen> {
       ),
     );
   }
+
+
 
   Widget _buildActionButtons(BuildContext context, StateSetter setState, TextEditingController discountController, String selectedDiscountType) {
     return Row(
