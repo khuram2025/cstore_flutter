@@ -1,34 +1,43 @@
 import 'package:flutter/material.dart';
 
-class InvoiceScreen extends StatelessWidget {
+class InvoiceScreen extends StatefulWidget {
   final Map<String, dynamic> data;
 
   InvoiceScreen({Key? key, required this.data}) : super(key: key) {
     print('InvoiceScreen constructed with data: $data'); // Add this line to check incoming data
   }
 
+  @override
+  State<InvoiceScreen> createState() => _InvoiceScreenState();
+}
 
+class _InvoiceScreenState extends State<InvoiceScreen> {
   @override
   Widget build(BuildContext context) {
-    String storeName = data['storeName'] ?? 'ABC Store';
-    String orderId = data['orderId'].toString();
-    String date = data['date'] ?? '01-01-2023';
-    String customerName = data['customerName'] ?? 'John Doe';
-    List<Map<String, dynamic>> items = data['items'] ?? [
+    print('Building InvoiceScreen with data: ${widget.data}');
+    String storeName = widget.data['storeName'] ?? 'ABC Store';
+    String orderId = widget.data['orderId'].toString();
+    String date = widget.data['date'] ?? '01-01-2023';
+    String customerName = widget.data['customerName'] ?? 'John Doe';
+    List<Map<String, dynamic>> items = widget.data['items'] ?? [
       {'name': 'Product A', 'quantity': 2, 'price': 10.0},
       {'name': 'Product B', 'quantity': 1, 'price': 20.0}
     ];
-    double subtotal = double.tryParse(data['subtotal'].toString()) ?? 0.0;
-    print('InvoiceScreen Data: $data');
-    double discountValue = double.tryParse(data['discount_value'].toString()) ?? 0.0;
-    bool isDiscountPercentage = data['is_discount_percentage'] == true; // This ensures it's a boolean
+    double subtotal = double.tryParse(widget.data['subtotal'].toString()) ?? 0.0;
+    print('InvoiceScreen Data: ${widget.data}');
+    double discountValue = widget.data['discount_value'] is double
+        ? widget.data['discount_value']
+        : double.tryParse(widget.data['discount_value'].toString()) ?? 0.0;
+    bool isDiscountPercentage = widget.data['is_discount_percentage'] == true;
 
     print('Discount Value: $discountValue');
     print('Is Discount Percentage: $isDiscountPercentage');
-    double tax = double.tryParse(data['tax'].toString()) ?? 0.0;
-    double total = double.tryParse(data['total'].toString()) ?? 0.0;
+
+    double tax = double.tryParse(widget.data['tax'].toString()) ?? 0.0;
+    double total = double.tryParse(widget.data['total'].toString()) ?? 0.0;
 
     String formatDiscount() {
+      // This function will format the discount value correctly based on its type
       if (isDiscountPercentage) {
         return "$discountValue%";
       } else {
@@ -61,7 +70,11 @@ class InvoiceScreen extends StatelessWidget {
             _buildTotalSection('Subtotal', subtotal),
 
 
-            _buildTotalSection('Discount', discountValue, additionalText: formatDiscount()),
+            _buildTotalSection(
+              'Discount',
+              discountValue,
+              additionalText: isDiscountPercentage ? "$discountValue%" : "\$$discountValue",
+            ),
 
 
             _buildTotalSection('Tax', tax),
@@ -103,6 +116,7 @@ class InvoiceScreen extends StatelessWidget {
   }
 
   Widget _buildTotalSection(String title, double amount, {bool isTotal = false, String? additionalText}) {
+    print('Building total section: $title, Amount: $amount, Additional Text: $additionalText');
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -110,13 +124,11 @@ class InvoiceScreen extends StatelessWidget {
         children: <Widget>[
           Text(title, style: isTotal ? TextStyle(fontWeight: FontWeight.bold) : null),
           Text(
-            '${additionalText != null ? "$additionalText - " : ""}\$${amount.toStringAsFixed(2)}',
+            (additionalText != null ? additionalText + ' - ' : '') + '\$${amount.toStringAsFixed(2)}',
             style: isTotal ? TextStyle(fontWeight: FontWeight.bold) : null,
           ),
         ],
       ),
     );
   }
-
-
 }
