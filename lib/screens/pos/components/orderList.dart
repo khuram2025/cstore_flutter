@@ -64,8 +64,8 @@ class _OrderScreenState extends State<OrderScreen> {
   }
   String customerName = 'Walk In Customer';
   String customerPhoneNumber = ''; // Add this line
-  Future<void> _submitOrder() async {
-    var orderData = _prepareOrderData();
+  Future<void> _submitOrder(String paymentType, [double partialPayment = 0.0]) async {
+    var orderData = _prepareOrderData(paymentType, partialPayment);
     try {
       var responseData = await ApiService().submitOrderData(11, orderData);
       if (responseData != null && responseData.containsKey('order_id')) {
@@ -118,7 +118,7 @@ class _OrderScreenState extends State<OrderScreen> {
   void handleDiscountChange(double discountValue, bool isPercentage) {
     // Implement your logic for discount change
   }
-  Map<String, dynamic> _prepareOrderData() {
+  Map<String, dynamic> _prepareOrderData(String paymentType, [double partialPayment = 0.0]) {
     List<Map<String, dynamic>> items = widget.selectedItems.map((item) {
       return {
         'product_id': item.product.id,
@@ -127,14 +127,35 @@ class _OrderScreenState extends State<OrderScreen> {
       };
     }).toList();
 
+    double totalAmount = _calculateTotal();
+    double paidAmount = 0.0;
+    double creditAmount = 0.0;
+
+    switch (paymentType) {
+      case 'Partial':
+        paidAmount = partialPayment; // Use the Partialment amount
+        creditAmount = totalAmount - paidAmount; // Remaining amount is credited
+        break;
+      case 'Credit':
+        creditAmount = totalAmount; // Total amount is credited
+        break;
+      case 'Cash':
+      default:
+        paidAmount = totalAmount; // Full amount paid in cash
+        break;
+    }
+
     return {
-      'customer_id': selectedCustomer?.id, // Include the selected customer's ID
+      'customer_id': selectedCustomer?.id,
       'items': items,
       'subtotal': _calculateSubtotal().toStringAsFixed(2),
       'discount_value': discountValue.toStringAsFixed(2),
       'is_discount_percentage': isDiscountPercentage,
       'tax_ids': selectedTaxOption != null ? [selectedTaxOption!.id] : [],
-      'total_price': _calculateTotal().toStringAsFixed(2) // Include the total price after discount and taxes
+      'total_price': totalAmount.toStringAsFixed(2),
+      'payment_type': paymentType,
+      'credit_amount': creditAmount.toStringAsFixed(2),
+      'paid_amount': paidAmount.toStringAsFixed(2)
     };
   }
 
@@ -378,18 +399,26 @@ class _OrderScreenState extends State<OrderScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
                         _buildPaymentOption('Cash', Icons.monetization_on, grey, () {
-                          _submitOrder();
+                          setState(() {
+                            _submitOrder('Cash');
+                          });
                         }),
                         _buildPaymentOption('Credit', Icons.credit_card, amberSea, () {
-                          // Handle Credit Payment Logic
+                          setState(() {
+                            _submitOrder('Credit');
+                          });
                         }),
-                        _buildPaymentOption('Multiple Pay', Icons.payment, green, () {
-                          _showMultiplePayDialog(_calculateTotal());
-
+                        _buildPaymentOption('Partial', Icons.payment, green, () {
+                          _showMultiplePayDialog(_calculateTotal(), () {
+                            setState(() {
+                              _submitOrder('Partial');
+                            });
+                          });
                         }),
                       ],
                     ),
                   ),
+
                 ],
               ),
             ),
@@ -482,7 +511,16 @@ class _OrderScreenState extends State<OrderScreen> {
       child: Padding( // Add padding for gap between boxes
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
         child: InkWell(
-          onTap: onPressed,
+          onTap: () {
+            if (title == 'Partial') {
+              _showMultiplePayDialog(_calculateTotal(), () {
+                // The actual order submission will be handled in the dialog's confirm action
+              });
+            } else {
+              onPressed();
+            }
+          },
+
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 5.0), // Reduced vertical padding
             decoration: BoxDecoration(
@@ -510,7 +548,7 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  void _showMultiplePayDialog(double totalAmount) {
+  void _showMultiplePayDialog(double totalAmount, VoidCallback onConfirm) {
     TextEditingController cashController = TextEditingController();
     TextEditingController creditController = TextEditingController();
 
@@ -527,13 +565,13 @@ class _OrderScreenState extends State<OrderScreen> {
         return StatefulBuilder(  // Use StatefulBuilder to update the dialog's content
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Multiple Pay', style: TextStyle(color: amberSea)),
+              title: Text('Partial', style: TextStyle(color: amberSea)),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: <Widget>[
                     Text('Total Order Amount: \$${totalAmount.toStringAsFixed(2)}', style: TextStyle(color: grey)),
                     SizedBox(height: 10),
-                    _buildPaymentField('Cash Payment', cashController, Icons.monetization_on, grey, () {
+                    _buildPaymentField('Cash Payment01', cashController, Icons.monetization_on, grey, () {
                       setState(() {});  // Update the state to refresh remaining amount
                     }),
 
@@ -552,8 +590,10 @@ class _OrderScreenState extends State<OrderScreen> {
                 TextButton(
                   child: Text('Confirm', style: TextStyle(color: green)),
                   onPressed: () {
-                    // Handle the payment logic here
+                    double partialPayment = double.tryParse(cashController.text) ?? 0.0;
                     Navigator.of(context).pop();
+                    _submitOrder('Partial', partialPayment); // Pass the Partialment amount
+                    onConfirm();
                   },
                 ),
               ],

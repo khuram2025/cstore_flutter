@@ -1,23 +1,50 @@
-class InvoiceScreen extends StatelessWidget {
-  final Map<String, dynamic> data;
+import 'package:flutter/material.dart';
+import 'package:cstore_flutter/API/api_service.dart';
 
-  InvoiceScreen({Key? key, required this.data}) : super(key: key);
+class CustomerOrdersDetailList extends StatefulWidget {
+  final int customerId;
+
+  const CustomerOrdersDetailList({Key? key, required this.customerId}) : super(key: key);
+
+  @override
+  _CustomerOrdersDetailListState createState() => _CustomerOrdersDetailListState();
+}
+
+class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
+  // ... [Rest of your existing code]
 
   @override
   Widget build(BuildContext context) {
-    // ... other code
-
-    // Debug print statements
-    print('InvoiceScreen Data: $data');
-    double discountValue = double.tryParse(data['discount_value'].toString()) ?? 0.0;
-    bool isDiscountPercentage = data['is_discount_percentage'] ?? false;
-
-    // Print the discount value and whether it's a percentage
-    print('Discount Value: $discountValue');
-    print('Is Discount Percentage: $isDiscountPercentage');
-
-    // ... rest of the code
+    return FutureBuilder<List<Order>>(
+      future: _ordersFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (snapshot.hasData) {
+          // Wrapping DataTable with SingleChildScrollView for vertical scrolling
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: DataTable(
+                sortColumnIndex: _sortColumnIndex,
+                columnSpacing: 10.0,
+                sortAscending: _isAscending,
+                columns: [
+                  // Your DataColumn definitions
+                ],
+                rows: _buildRows(snapshot.data!),
+              ),
+            ),
+          );
+        } else {
+          return Text('No orders found');
+        }
+      },
+    );
   }
 
-// ... rest of the InvoiceScreen code
+// ... [Rest of your existing code]
 }

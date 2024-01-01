@@ -34,27 +34,33 @@ class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
         } else if (snapshot.hasData) {
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: DataTable(
-              sortColumnIndex: _sortColumnIndex,
-              columnSpacing: 10.0,
-              sortAscending: _isAscending,
-              columns: [
-                DataColumn(label: Text('Image')),
-                DataColumn(label: Text('Name')),
-                DataColumn(
-                  label: Text('Date'),
-                  onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.date ?? ''),
-                ),
-                DataColumn(
-                  label: Text('Transaction'),
-                  onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.transactionType ?? ''),
-                ),
-                DataColumn(
-                  label: Text('Total Amount'),
-                  onSort: (columnIndex, ascending) => _sortByDouble(columnIndex, ascending, (o) => o.totalAmount),
-                ),
-              ],
-              rows: _buildRows(snapshot.data!),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                sortColumnIndex: _sortColumnIndex,
+                columnSpacing: 10.0,
+                sortAscending: _isAscending,
+                columns: [
+
+
+                  DataColumn(
+                    label: Text('Date'),
+                    onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.date ?? ''),
+                  ),
+                  DataColumn(
+                    label: Text('Transaction'),
+                    onSort: (columnIndex, ascending) => _sortByString(columnIndex, ascending, (o) => o.transactionType ?? ''),
+                  ),
+                  DataColumn(label: Text('Paid\$')),
+                  DataColumn(label: Text('Credit\$')),
+                  DataColumn(
+                    label: Text('Total\$'),
+                    onSort: (columnIndex, ascending) => _sortByDouble(columnIndex, ascending, (o) => o.totalAmount),
+                  ),
+                  DataColumn(label: Icon(Icons.receipt)),
+                ],
+                rows: _buildRows(snapshot.data!),
+              ),
             ),
           );
         } else {
@@ -65,21 +71,32 @@ class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
   }
 
   List<DataRow> _buildRows(List<Order> orders) {
-    return orders.map<DataRow>((order) {
+    return orders.map((order) {
       return DataRow(
         cells: [
-          DataCell(CircleAvatar(
-            backgroundImage: NetworkImage(order.imageUrl ?? ''),
-            radius: 25,
-          )),
-          DataCell(Text(order.customerName ?? '')),
           DataCell(Text(order.date ?? '')),
-          DataCell(Text(order.transactionType ?? '')),
-          DataCell(Text('\$${order.totalAmount.toString()}')),
+          DataCell(Container(
+            padding: EdgeInsets.all(8),
+            color: _getTransactionTypeColor(order.transactionType),
+            child: Text(
+              order.transactionType ?? '',
+              style: TextStyle(color: _getTextColor(order.transactionType)),
+            ),
+          )),
+          DataCell(Text('\$${order.paidAmount.toStringAsFixed(2)}')), // Ensure proper string formatting
+          DataCell(Text('\$${order.remainingAmount.toStringAsFixed(2)}')), // Ensure proper string formatting
+          DataCell(Text('\$${order.totalAmount.toStringAsFixed(2)}')), // Added missing Total Amount cell
+          DataCell(IconButton(
+            icon: Icon(Icons.receipt),
+            onPressed: () {
+              // TODO: Implement navigation to invoice details
+            },
+          )),
         ],
       );
     }).toList();
   }
+
 
   void _sortByString(int columnIndex, bool ascending, String Function(Order) getField) {
     setState(() {
@@ -98,42 +115,77 @@ class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
     setState(() {
       _sortColumnIndex = columnIndex;
       _isAscending = ascending;
-      if (_isAscending) {
-        // Update this sorting logic as needed
-      } else {
-        // Update this sorting logic as needed
-      }
+      _ordersFuture = _ordersFuture.then((orders) {
+        if (_isAscending) {
+          orders.sort((a, b) => getField(a).compareTo(getField(b)));
+        } else {
+          orders.sort((a, b) => getField(b).compareTo(getField(a)));
+        }
+        return orders; // return the sorted list
+      });
     });
   }
+  Color _getTransactionTypeColor(String? type) {
+    switch (type) {
+      case 'Partial':
+        return Color(0xFFFC8019).withOpacity(0.1);
+      case 'Cash':
+        return Color(0xFF09AA29).withOpacity(0.1);
+      case 'Credit':
+        return Color(0xFF9F9F9E).withOpacity(0.1);
+      default:
+        return Colors.transparent;
+    }
+  }
+
+  Color _getTextColor(String? type) {
+    switch (type) {
+      case 'Partial':
+      case 'Cash':
+      case 'Credit':
+        return Colors.black;
+      default:
+        return Colors.grey;
+    }
+  }
+
 }
 
 class Order {
-  final String? imageUrl;
-  final String? customerName;
-  final String? mobileNumber;
   final String? date;
   final String? transactionType;
   final double totalAmount;
+  final double paidAmount;
+  final double remainingAmount;
 
   Order({
-    this.imageUrl,
-    this.customerName,
-    this.mobileNumber,
     this.date,
     this.transactionType,
     required this.totalAmount,
+    required this.paidAmount,
+    required this.remainingAmount,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      imageUrl: json['imageUrl'] as String? ?? 'default_image_url',
-      customerName: json['customerName'] as String? ?? 'default_name',
-      mobileNumber: json['mobileNumber'] as String? ?? 'default_mobile',
       date: json['date'] as String? ?? 'default_date',
       transactionType: json['transactionType'] as String? ?? 'default_transaction',
-      totalAmount: double.parse(json['totalAmount'].toString()),
+      totalAmount: _parseDouble(json['totalAmount']),
+      paidAmount: _parseDouble(json['paidAmount']),
+      remainingAmount: _parseDouble(json['remainingAmount']),
     );
   }
 
+  static double _parseDouble(dynamic value) {
+    if (value == null) {
+      return 0.0; // default value if null
+    }
+    try {
+      return double.parse(value.toString());
+    } catch (e) {
+      return 0.0; // default value in case of parsing error
+    }
+  }
 }
+
 
