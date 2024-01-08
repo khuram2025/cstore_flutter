@@ -23,6 +23,95 @@ class _LedgerEntryListState extends State<LedgerEntryList> {
     _ledgerEntriesFuture = ApiService().fetchLedger(widget.customerId);
   }
 
+  void _showAddPaymentDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Define variables for form fields
+        final _amountController = TextEditingController();
+        String _selectedTransactionType = 'in';
+        String _notes = '';
+
+        return AlertDialog(
+          title: Text('Add Payment'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  controller: _amountController,
+                  decoration: InputDecoration(hintText: "Amount"),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                ),
+                DropdownButton<String>(
+                  value: _selectedTransactionType,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedTransactionType = newValue!;
+                    });
+                  },
+                  items: <String>['in', 'out']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                TextField(
+                  decoration: InputDecoration(hintText: "Notes"),
+                  onChanged: (value) {
+                    _notes = value;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Add'),
+              onPressed: () {
+                if (_amountController.text.isNotEmpty) {
+                  final double amount = double.tryParse(_amountController.text) ?? 0.0;
+                  final manualTransaction = ManualTransaction(
+                    customerId: widget.customerId,
+                    amount: amount,
+                    transactionType: _selectedTransactionType,
+                    date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                    notes: _notes,
+                  );
+
+                  ApiService().addManualTransaction(manualTransaction).then((_) {
+                    // Close the dialog after successfully adding the transaction
+                    Navigator.of(context).pop();
+
+                    // Update the state to reflect new transaction
+                    setState(() {
+                      _ledgerEntriesFuture = ApiService().fetchLedger(widget.customerId);
+                    });
+                  }).catchError((error) {
+                    // Handle the error here
+                    print('Error adding manual transaction: $error');
+                  });
+                } else {
+                  print('Amount field is empty');
+                }
+              },
+
+            ),
+
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -33,9 +122,7 @@ class _LedgerEntryListState extends State<LedgerEntryList> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Add your payment button logic here
-                },
+                onPressed: _showAddPaymentDialog,
                 icon: Icon(Icons.add),
                 label: Text('Add Payment'),
               ),
@@ -119,90 +206,6 @@ class _LedgerEntryListState extends State<LedgerEntryList> {
 }
 
 
-
-class TransactionItem extends StatelessWidget {
-  final Transaction transaction;
-
-  TransactionItem({Key? key, required this.transaction}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0), // Adjusted padding for more space
-        child: IntrinsicHeight( // Use IntrinsicHeight to align columns
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // Icon and In/Out text
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    transaction.isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-                    color: transaction.isIncome ? Colors.green : Colors.red,
-                    size: 24, // Increased icon size
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    transaction.isIncome ? 'In' : 'Out',
-                    style: TextStyle(
-                      color: transaction.isIncome ? Colors.green : Colors.red, // Match icon color
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(width: 12), // Space between the icon and the description
-              // Description, Date and Amount
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      transaction.description,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '\$${transaction.amount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 20, // Increased font size for amount
-                        color: transaction.isIncome ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(DateFormat('yyyy-MM-dd – kk:mm').format(transaction.date)),
-                  ],
-                ),
-              ),
-              // Edit and Delete icons
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      // TODO: Add your edit logic here
-                    },
-                    icon: Icon(Icons.edit, color: Colors.blue, size: 24), // Increased icon size
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      // TODO: Add your delete logic here
-                    },
-                    icon: Icon(Icons.delete, color: Colors.red, size: 24), // Increased icon size
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class LedgerEntryItem extends StatelessWidget {
   final LedgerEntry ledgerEntry;

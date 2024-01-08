@@ -226,6 +226,36 @@ class ApiService {
     }
   }
 
+  Future<void> addManualTransaction(ManualTransaction transaction) async {
+    final jsonData = jsonEncode(transaction.toJson());
+    print('Sending Create Manual Transaction API: $jsonData');
+
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl + 'companies/api/add_manual_transaction'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+        body: jsonData,
+      );
+
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode != 201) {
+        throw Exception('Failed to add manual transaction. Status code: ${response.statusCode}');
+      }
+
+      print('Manual transaction added successfully');
+    } catch (e) {
+      print('Error during API call: $e');
+      throw Exception('Error during API call: $e');
+    }
+  }
+
+
 }
+
+
 
 

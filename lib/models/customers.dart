@@ -123,3 +123,29 @@ class LedgerEntry {
   }
 
 }
+
+class ManualTransaction {
+  final int customerId;
+  final double amount;
+  final String transactionType;
+  final String date; // Assuming date is in 'yyyy-MM-dd' format
+  final String notes;
+
+  ManualTransaction({
+    required this.customerId,
+    required this.amount,
+    required this.transactionType,
+    required this.date,
+    this.notes = '',
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'customer_id': customerId,
+      'amount': amount,
+      'transaction_type': transactionType,
+      'transaction_date': date,
+      'notes': notes,
+    };
+  }
+}
