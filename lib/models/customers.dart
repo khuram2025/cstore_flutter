@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 
-
 class Customer {
   final int? id;
   final String? name;
@@ -9,8 +8,11 @@ class Customer {
   final String? mobile;
   final String? address;
   final String? imagePath;
-  final int? storeId;  // Add store ID
+  final int? storeId;
   final double? openingBalance;
+  final String? customerSince; // New field
+  final double? remainingBalance; // New field
+  final String? customerLevel; // New field
 
   Customer({
     this.id,
@@ -21,29 +23,103 @@ class Customer {
     this.imagePath,
     this.storeId,
     this.openingBalance,
+    this.customerSince,
+    this.remainingBalance,
+    this.customerLevel,
   });
 
-  // Factory constructor for creating a new Customer instance from a map
   factory Customer.fromJson(Map<String, dynamic> json) {
+    final openingBalanceJson = json['openingBalance'];
+    double? openingBalance;
+    if (openingBalanceJson != null) {
+      if (openingBalanceJson is Map && openingBalanceJson.containsKey('\$Decimal')) {
+        String decimalString = openingBalanceJson['\$Decimal'];
+        openingBalance = double.tryParse(decimalString);
+      } else if (openingBalanceJson is String) {
+        openingBalance = double.tryParse(openingBalanceJson);
+      } else {
+        openingBalance = openingBalanceJson.toDouble();
+      }
+    }
+    final remainingBalance = _parseDecimal(json['remaining_balance']);
     return Customer(
-      id: json['id'],
-      name: json['name'] as String?, // Assuming 'name' is the JSON field for the customer's name
-      email: json['email'] as String?, // Same assumption for 'email'
-      mobile: json['mobile'] as String?, // Same assumption for 'phone'
-      address: json['address'] as String?, // Same assumption for 'address'
-      imagePath: json['imagePath'] as String?, // Same assumption for 'imagePath'
+      id: json['id'] ?? 0,
+      name: json['name'] ?? 'N/A',
+      email: json['email'] ?? 'N/A',
+      mobile: json['mobile'] ?? 'N/A',
+      address: json['address'] ?? 'N/A',
+      imagePath: json['imagePath'] ?? 'path/to/default/image.png',
+      storeId: json['store_id'] ?? 1,
+      openingBalance: openingBalance,
+      customerSince: json['customer_since'] ?? 'Unknown',
+      remainingBalance: remainingBalance,
+      customerLevel: json['customer_level'] ?? 'Standard',
     );
   }
+  static double? _parseDecimal(dynamic value) {
+    if (value == null) return null;
+    // Check if the value is a Map and if it contains a key that resembles 'Decimal'
+    if (value is Map && value.containsKey('\$Decimal')) {
+      return double.tryParse(value['\$Decimal']);
+    }
+    return double.tryParse(value.toString());
+  }
 
-  // Method to convert Customer instance to a map (useful for sending data back to the server)
+
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'email': email,
       'mobile': mobile,
       'address': address,
+      'imagePath': imagePath,
       'store_id': storeId,
       'opening_balance': openingBalance ?? 0.0,
+      'customer_since': customerSince,
+      'remaining_balance': remainingBalance ?? 0.0,
+      'customer_level': customerLevel,
     };
   }
+}
+
+
+
+class Transaction {
+  final int id;
+  final DateTime date;
+  final String description;
+  final double amount;
+  final bool isIncome; // True for income, false for expense
+
+  Transaction({
+    required this.id,
+    required this.date,
+    required this.description,
+    required this.amount,
+    required this.isIncome,
+  });
+}
+class LedgerEntry {
+  final int id;
+  final String type;
+  final String date;
+  final double amount;
+
+  LedgerEntry({
+    required this.id,
+    required this.type,
+    required this.date,
+    required this.amount,
+  });
+
+  factory LedgerEntry.fromJson(Map<String, dynamic> json) {
+    return LedgerEntry(
+      id: json['id'] as int,
+      type: json['type'] as String,
+      date: json['date'] as String,
+      amount: double.parse(json['amount'].toString()),
+    );
+  }
+
 }

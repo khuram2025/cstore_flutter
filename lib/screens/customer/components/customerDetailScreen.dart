@@ -1,10 +1,14 @@
 import 'package:cstore_flutter/models/customers.dart';
 import 'package:cstore_flutter/screens/customer/components/customerOrdersDetailList.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Ensure you have added flutter_svg in your pubspec.yaml
+import 'package:flutter_svg/flutter_svg.dart';
+
+import 'overviewTab.dart';
+import 'transactionTab/TransactionList.dart'; // Ensure you have added flutter_svg in your pubspec.yaml
 
 class CustomerDetailScreen extends StatefulWidget {
   final Customer customer;
+
 
   const CustomerDetailScreen({Key? key, required this.customer})
       : super(key: key);
@@ -15,11 +19,31 @@ class CustomerDetailScreen extends StatefulWidget {
 
 class _CustomerDetailScreenState extends State<CustomerDetailScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late List<Transaction> transactions;
+  late List<LedgerEntry> ledgerEntry;// Define transactions here
+
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    transactions = [
+      Transaction(
+        isIncome: true,
+        amount: 100.00,
+        date: DateTime.now(),
+        description: 'Payment Received', id: 1,
+      ),
+      Transaction(
+        isIncome: false,
+        amount: 50.00,
+        date: DateTime.now().subtract(Duration(days: 1)),
+        description: 'Payment Made', id: 2,
+      ),
+      // Add more transactions as needed
+    ];
   }
+
 
   @override
   void didUpdateWidget(CustomerDetailScreen oldWidget) {
@@ -131,7 +155,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> with Single
                     Tab(
                       icon: Icon(Icons.storage, size: 16),
                       // Example icon, replace with your own icon
-                      text: 'Stock Status',
+                      text: 'Ledger',
                     ),
                     Tab(
                       icon: Icon(Icons.attach_money, size: 16),
@@ -139,11 +163,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> with Single
                       text: 'Orders',
                     ),
 
-                    Tab(
-                      icon: Icon(Icons.analytics, size: 16),
-                      // Example icon, replace with your own icon
-                      text: 'Analytics',
-                    ),
+
                     Tab(
                       icon: Icon(Icons.report, size: 16),
                       // Example icon, replace with your own icon
@@ -159,29 +179,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> with Single
                 controller: _tabController,
                 children: [
                   // Customer Details Tab
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          leading: SvgPicture.asset(emailIcon),
-                          title: Text(widget.customer.email ?? 'N/A'),
-                        ),
-                        ListTile(
-                          leading: SvgPicture.asset(callIcon),
-                          title: Text(widget.customer.mobile ?? 'N/A'),
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.location_on),
-                          title: Text(widget.customer.address ?? 'N/A'),
-                        ),
-                      ],
-                    ),
-                  ),
+                  CustomerOverviewTab(customer: widget.customer),
+                  LedgerEntryList(customerId: widget.customer.id ?? 0),
                   widget.customer.id != null
                       ? CustomerOrdersDetailList(customerId: widget.customer.id!)
                       : Center(child: Text('Customer ID is unavailable')),
-                  // Customer Orders Tab
+
 
 
                   // Customer Activity Tab
@@ -194,6 +197,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> with Single
       ),
     );
   }
+
 }
 
 class ActionButton extends StatelessWidget {

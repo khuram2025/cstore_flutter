@@ -1,50 +1,73 @@
-import 'package:flutter/material.dart';
-import 'package:cstore_flutter/API/api_service.dart';
+class TransactionList extends StatelessWidget {
+  final List<Transaction> transactions;
 
-class CustomerOrdersDetailList extends StatefulWidget {
-  final int customerId;
-
-  const CustomerOrdersDetailList({Key? key, required this.customerId}) : super(key: key);
-
-  @override
-  _CustomerOrdersDetailListState createState() => _CustomerOrdersDetailListState();
-}
-
-class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
-  // ... [Rest of your existing code]
+  TransactionList({Key? key, required this.transactions}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Order>>(
-      future: _ordersFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (snapshot.hasData) {
-          // Wrapping DataTable with SingleChildScrollView for vertical scrolling
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: DataTable(
-                sortColumnIndex: _sortColumnIndex,
-                columnSpacing: 10.0,
-                sortAscending: _isAscending,
-                columns: [
-                  // Your DataColumn definitions
-                ],
-                rows: _buildRows(snapshot.data!),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  // TODO: Add your payment button logic here
+                },
+                icon: Icon(Icons.add),
+                label: Text('Add Payment'),
               ),
-            ),
-          );
-        } else {
-          return Text('No orders found');
-        }
-      },
+              ElevatedButton.icon(
+                onPressed: () {
+                  // TODO: Add your filter button logic here
+                },
+                icon: Icon(Icons.filter_list),
+                label: Text('Filter'),
+              ),
+            ],
+          ),
+        ),
+        // Balance Boxes
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildBalanceBox('In', '1200', Colors.green),
+              _buildBalanceBox('Out', '800', Colors.red),
+              _buildBalanceBox('Status', '400', Colors.blue),
+            ],
+          ),
+        ),
+        // Transaction List
+        Expanded(
+          child: ListView.builder(
+            itemCount: transactions.length,
+            itemBuilder: (context, index) {
+              return TransactionItem(transaction: transactions[index]);
+            },
+          ),
+        ),
+      ],
     );
   }
 
-// ... [Rest of your existing code]
+  Widget _buildBalanceBox(String title, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 4),
+          Text('\$$value', style: TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
 }

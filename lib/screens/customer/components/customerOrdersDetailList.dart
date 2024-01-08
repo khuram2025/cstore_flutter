@@ -84,7 +84,7 @@ class _CustomerOrdersDetailListState extends State<CustomerOrdersDetailList> {
             ),
           )),
           DataCell(Text('\$${order.paidAmount.toStringAsFixed(2)}')), // Ensure proper string formatting
-          DataCell(Text('\$${order.remainingAmount.toStringAsFixed(2)}')), // Ensure proper string formatting
+          DataCell(Text('\$${order.creditAmount.toStringAsFixed(2)}')), // Ensure proper string formatting
           DataCell(Text('\$${order.totalAmount.toStringAsFixed(2)}')), // Added missing Total Amount cell
           DataCell(IconButton(
             icon: Icon(Icons.receipt),
@@ -157,6 +157,7 @@ class Order {
   final double totalAmount;
   final double paidAmount;
   final double remainingAmount;
+  final double creditAmount;
 
   Order({
     this.date,
@@ -164,6 +165,7 @@ class Order {
     required this.totalAmount,
     required this.paidAmount,
     required this.remainingAmount,
+    required this.creditAmount,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -173,6 +175,7 @@ class Order {
       totalAmount: _parseDouble(json['totalAmount']),
       paidAmount: _parseDouble(json['paidAmount']),
       remainingAmount: _parseDouble(json['remainingAmount']),
+      creditAmount: _parseDouble(json['creditAmount']),
     );
   }
 

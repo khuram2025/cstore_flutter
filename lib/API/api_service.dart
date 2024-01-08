@@ -106,6 +106,7 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
+    print('Response Body Customer: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> customersJson = json.decode(response.body)['customers'];
@@ -145,6 +146,7 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
+    print('Response Body Customer: ${response.body}');
 
     if (response.statusCode == 200) {
       return Customer.fromJson(json.decode(response.body));
@@ -179,6 +181,29 @@ class ApiService {
     }
   }
 
+  Future<List<LedgerEntry>> fetchLedger(int customerId) async {
+    final response = await http.get(
+      Uri.parse(baseUrl + 'companies/api/$customerId/ledger'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+    );
+    print('Response Body: ${response.body}');
+    if (response.statusCode == 200) {
+      var jsonResponse = json.decode(response.body);
+
+      // Check if jsonResponse is a map and contains 'ledger_entries'
+      if (jsonResponse is Map<String, dynamic> && jsonResponse.containsKey('ledger_entries')) {
+        // Extract the list of ledger entries
+        List<dynamic> ledgerEntriesJson = jsonResponse['ledger_entries'];
+        return ledgerEntriesJson.map((json) => LedgerEntry.fromJson(json)).toList();
+      } else {
+        throw Exception('Unexpected JSON format');
+      }
+    } else {
+      throw Exception('Failed to fetch ledger entries. Status code: ${response.statusCode}');
+    }
+  }
 
 
   Future<void> addCustomer(Customer customer) async {
