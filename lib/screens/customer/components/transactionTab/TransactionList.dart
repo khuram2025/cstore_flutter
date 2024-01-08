@@ -214,65 +214,67 @@ class LedgerEntryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine if the entry is income or expense
-    bool isIncome = ledgerEntry.type == 'payment';
+    IconData iconData = ledgerEntry.type == 'payment' ? Icons.arrow_downward : Icons.arrow_upward;
+    Color iconColor = ledgerEntry.type == 'payment' ? Colors.green : Colors.red;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: IntrinsicHeight(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // Icon and In/Out text
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Icon
+            Icon(iconData, color: iconColor, size: 24),
+            SizedBox(width: 12),
+
+            // ID and Date
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
                 children: [
-                  Icon(
-                    isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-                    color: isIncome ? Colors.green : Colors.red,
-                    size: 24,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    isIncome ? 'In' : 'Out',
-                    style: TextStyle(
-                      color: isIncome ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text('ID: ${ledgerEntry.id}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                  Text(DateFormat('yyyy-MM-dd').format(DateTime.parse(ledgerEntry.date))),
                 ],
               ),
-              SizedBox(width: 12),
-              // Description, Date, and Amount
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'ID: ${ledgerEntry.id}',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '\$${ledgerEntry.amount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: isIncome ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(DateFormat('yyyy-MM-dd').format(DateTime.parse(ledgerEntry.date))),
-                  ],
+            ),
+
+            // Amount
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('\$${ledgerEntry.amount.toStringAsFixed(2)}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: iconColor)),
+
+
+              ],
+            ),
+
+            // Edit and Delete icons (Vertical Alignment)
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    // TODO: Add your edit logic here
+                  },
+                  icon: Icon(Icons.edit, color: Colors.blue, size: 16),
                 ),
-              ),
-              // Optionally add Edit and Delete icons if needed
-              //...
-            ],
-          ),
+                IconButton(
+                  onPressed: () {
+                    // TODO: Add your delete logic here
+                  },
+                  icon: Icon(Icons.delete, color: Colors.red, size: 16),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+
+

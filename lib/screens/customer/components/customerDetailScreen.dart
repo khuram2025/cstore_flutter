@@ -134,46 +134,20 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> with Single
                 alignment: Alignment.centerLeft,
                 child: TabBar(
                   controller: _tabController,
-                  isScrollable: true,
-                  // Enable horizontal scrolling
+
                   indicatorColor: Colors.green,
-                  // Color for the indicator
                   indicatorSize: TabBarIndicatorSize.tab,
-                  // Indicator size as per tab
-                  labelPadding: EdgeInsets.symmetric(horizontal: 12.0),
-                  // Reduce left and right padding of each tab
                   tabs: [
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.zero,
-                      child: Tab(
-                        icon: Icon(Icons.visibility, size: 16),
-                        // Example icon, replace with your own icon
-                        text: 'Overview',
-                      ),
-                    ),
-                    Tab(
-                      icon: Icon(Icons.storage, size: 16),
-                      // Example icon, replace with your own icon
-                      text: 'Ledger',
-                    ),
-                    Tab(
-                      icon: Icon(Icons.attach_money, size: 16),
-                      // Example icon, replace with your own icon
-                      text: 'Orders',
-                    ),
-
-
-                    Tab(
-                      icon: Icon(Icons.report, size: 16),
-                      // Example icon, replace with your own icon
-                      text: 'Reports',
-                    ),
+                    Tab(text: 'Overview', icon: Icon(Icons.visibility, size: 16)),
+                    Tab(text: 'Ledger', icon: Icon(Icons.storage, size: 16)),
+                    Tab(text: 'Orders', icon: Icon(Icons.attach_money, size: 16)),
+                    Tab(text: 'Reports', icon: Icon(Icons.report, size: 16)),
                     // ... add more tabs as needed ...
                   ],
                 ),
               ),
             ),
+
             Expanded(
               child: TabBarView(
                 controller: _tabController,
