@@ -184,7 +184,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> with Single
                   // Customer Orders Tab
 
 
-          // Customer Activity Tab
+                  // Customer Activity Tab
                   Center(child: Text('Customer Activity Content')),
                 ],
               ),

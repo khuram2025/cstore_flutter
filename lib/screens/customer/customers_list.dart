@@ -148,7 +148,7 @@ class CustomerListView extends StatelessWidget {
         return Card(
           child: ListTile(
             title: Text(customer.name ?? 'N/A'),
-            subtitle: Text(customer.email ?? 'N/A'),
+            subtitle: Text(customer.mobile ?? 'N/A'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
               if (Responsive.isMobile(context)) {

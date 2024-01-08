@@ -10,6 +10,7 @@ class Customer {
   final String? address;
   final String? imagePath;
   final int? storeId;  // Add store ID
+  final double? openingBalance;
 
   Customer({
     this.id,
@@ -19,6 +20,7 @@ class Customer {
     this.address,
     this.imagePath,
     this.storeId,
+    this.openingBalance,
   });
 
   // Factory constructor for creating a new Customer instance from a map
@@ -40,7 +42,8 @@ class Customer {
       'email': email,
       'mobile': mobile,
       'address': address,
-      'imagePath': imagePath,
+      'store_id': storeId,
+      'opening_balance': openingBalance ?? 0.0,
     };
   }
 }

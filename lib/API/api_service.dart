@@ -186,7 +186,7 @@ class ApiService {
     print('Sending Create Customer API: $jsonData'); // Print the JSON data
 
     final response = await http.post(
-      Uri.parse(baseUrl + 'product/api/customers/'),
+      Uri.parse(baseUrl + 'companies/api/customers/create'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },

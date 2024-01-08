@@ -16,6 +16,8 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController addressController = TextEditingController();
+  TextEditingController openingBalanceController = TextEditingController(text: '0'); // Default value set to '0'
+
 
   @override
   Widget build(BuildContext context) {
@@ -57,20 +59,6 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                 },
               ),
               TextFormField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  suffixIcon: Icon(Icons.email),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the customer\'s email';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
                 controller: phoneController,
                 decoration: InputDecoration(
                   labelText: 'Phone',
@@ -85,17 +73,37 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                 },
               ),
               TextFormField(
-                controller: addressController,
+                controller: openingBalanceController,
                 decoration: InputDecoration(
-                  labelText: 'Address',
-                  suffixIcon: Icon(Icons.location_on),
+                  labelText: 'Opening Balance',
+                  suffixIcon: Icon(Icons.attach_money),
                 ),
+                keyboardType: TextInputType.number, // To ensure only numbers are entered
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the customer\'s address';
+                    return 'Please enter the opening balance';
                   }
                   return null;
                 },
+              ),
+
+              TextFormField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email(Optional)',
+                  suffixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+
+              ),
+
+              TextFormField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  labelText: 'Address(Optional)',
+                  suffixIcon: Icon(Icons.location_on),
+                ),
+
               ),
               SizedBox(height: 20),
               ElevatedButton(
@@ -103,6 +111,7 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     try {
+                      double? openingBalanceValue = double.tryParse(openingBalanceController.text);
                       await apiService.addCustomer(
                         Customer(
 
@@ -110,6 +119,7 @@ class _AddNewCustomerScreenState extends State<AddNewCustomerScreen> {
                           email: emailController.text,
                           mobile: phoneController.text,
                           address: addressController.text,
+                          openingBalance: openingBalanceValue ?? 0.0,
                           storeId: 11,
                         ),
                       );
