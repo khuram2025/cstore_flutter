@@ -1,73 +1,49 @@
-class TransactionList extends StatelessWidget {
-  final List<Transaction> transactions;
+import 'package:flutter/material.dart';
+import 'package:cstore_flutter/API/api_service.dart';
+import 'package:cstore_flutter/screens/inventory/product_list.dart';
 
-  TransactionList({Key? key, required this.transactions}) : super(key: key);
+class LoginScreen extends StatelessWidget {
+  final TextEditingController mobileController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final ApiService apiService = ApiService();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    // Define colors
+    const Color primaryColor = Color(0xFF09AA29);
+    const Color fadedTextColor = Color(0xFF9f9f9e);
+
+    // Determine if it's a desktop view
+    bool isDesktop = MediaQuery.of(context).size.width > 600;
+
+    return Scaffold(
+      appBar: AppBar(title: Text('Login')),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: isDesktop
+              ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Add your payment button logic here
-                },
-                icon: Icon(Icons.add),
-                label: Text('Add Payment'),
+              Expanded(
+                child: Image.asset(
+                  'path/to/your/image.jpg', // Replace with your image path
+                  fit: BoxFit.cover,
+                ),
               ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Add your filter button logic here
-                },
-                icon: Icon(Icons.filter_list),
-                label: Text('Filter'),
+              Container(
+                width: 450, // Max width for login form
+                child: _buildLoginForm(context, primaryColor, fadedTextColor),
               ),
             ],
-          ),
+          )
+              : _buildLoginForm(context, primaryColor, fadedTextColor),
         ),
-        // Balance Boxes
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildBalanceBox('In', '1200', Colors.green),
-              _buildBalanceBox('Out', '800', Colors.red),
-              _buildBalanceBox('Status', '400', Colors.blue),
-            ],
-          ),
-        ),
-        // Transaction List
-        Expanded(
-          child: ListView.builder(
-            itemCount: transactions.length,
-            itemBuilder: (context, index) {
-              return TransactionItem(transaction: transactions[index]);
-            },
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildBalanceBox(String title, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 4),
-          Text('\$$value', style: TextStyle(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
+  Widget _buildLoginForm(BuildContext context, Color primaryColor, Color fadedTextColor) {
+    // ... (same as before)
   }
 }

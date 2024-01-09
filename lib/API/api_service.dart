@@ -206,6 +206,8 @@ class ApiService {
   }
 
 
+
+
   Future<void> addCustomer(Customer customer) async {
     final jsonData = jsonEncode(customer.toJson()); // Encode the customer data to JSON
     print('Sending Create Customer API: $jsonData'); // Print the JSON data
