@@ -7,6 +7,7 @@ import 'package:cstore_flutter/screens/pos/pos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../ui.dart';
 import '../../dashboard/dashboard_screen.dart';
 import '../../transactions/transaction_screen.dart';
 
@@ -18,12 +19,17 @@ class SideMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+
       child: ListView(
         children: [
           DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.white, // Also set the header's background to white
+            ),
             child: Image.asset("assets/images/logo.png"),
           ),
           DrawerListTile(
+
             title: "Dashboard",
             svgSrc: "assets/icons/menu_dashboard.svg",
             press: () {
@@ -115,17 +121,18 @@ class DrawerListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return ListTile(
       onTap: press,
       horizontalTitleGap: 0.0,
       leading: SvgPicture.asset(
         svgSrc,
-        colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+        color: AppColors.accentColor,
         height: 16,
       ),
       title: Text(
         title,
-        style: TextStyle(color: Colors.lightBlue),
+        style: TextStyle(color: AppColors.accentColor),
       ),
     );
   }
