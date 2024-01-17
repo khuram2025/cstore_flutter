@@ -32,6 +32,34 @@ class ApiService {
     }
   }
 
+
+  Future<Map<String, dynamic>> signup(String fullName, String email, String mobile, String password) async {
+    print('Sending to API: Full Name: $fullName, Email: $email, Mobile: $mobile, Password: $password');
+
+    final response = await http.post(
+      Uri.parse(baseUrl + 'account/api/mobile-signup/'), // Replace with your actual endpoint
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(<String, String>{
+        'full_name': fullName,
+        'email': email, // Since email is optional, ensure it handles null correctly
+        'mobile': mobile,
+        'password': password,
+      }),
+    );
+
+    print('Response Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to signup. Status code: ${response.statusCode}');
+    }
+  }
+
+
   Future<List<dynamic>> fetchProducts(int companyId) async {
     final response = await http.get(
       Uri.parse(baseUrl + 'companies/api/inventory/11/'), // Adjust the URL as needed

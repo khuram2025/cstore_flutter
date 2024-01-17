@@ -1,49 +1,56 @@
-import 'package:flutter/material.dart';
-import 'package:cstore_flutter/API/api_service.dart';
-import 'package:cstore_flutter/screens/inventory/product_list.dart';
+class SignupScreen extends StatefulWidget {
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
 
-class LoginScreen extends StatelessWidget {
-  final TextEditingController mobileController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final ApiService apiService = ApiService();
+class _SignupScreenState extends State<SignupScreen> {
+  // ... controllers and variables ...
+
+  final ApiService apiService = ApiService(); // Assuming you have this service
+
+  void _handleSignup() async {
+    String fullName = nameController.text;
+    String email = emailController.text;
+    String mobile = mobileController.text;
+    String password = passwordController.text;
+    String confirmPassword = confirmPasswordController.text;
+
+    if (password != confirmPassword) {
+      // Show some error message to the user
+      print('Passwords do not match');
+      return;
+    }
+
+    try {
+      final response = await apiService.signup(fullName, email, mobile, password);
+      if (response['status'] == 'success') {
+        // Navigate to the next screen or show success message
+        print('Signup successful');
+      } else {
+        // Handle different types of errors (like user already exists, etc.)
+        print('Signup failed: ${response['message']}');
+      }
+    } catch (e) {
+      // Handle network errors, etc.
+      print('Error during signup: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Define colors
-    const Color primaryColor = Color(0xFF09AA29);
-    const Color fadedTextColor = Color(0xFF9f9f9e);
+    // ... existing widget build method ...
 
-    // Determine if it's a desktop view
-    bool isDesktop = MediaQuery.of(context).size.width > 600;
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Login')),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: isDesktop
-              ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Image.asset(
-                  'path/to/your/image.jpg', // Replace with your image path
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Container(
-                width: 450, // Max width for login form
-                child: _buildLoginForm(context, primaryColor, fadedTextColor),
-              ),
-            ],
-          )
-              : _buildLoginForm(context, primaryColor, fadedTextColor),
-        ),
+    // Replace the onPressed for the ElevatedButton
+    ElevatedButton(
+      child: Text('Sign Up', style: TextStyle(fontSize: 16)),
+      style: ElevatedButton.styleFrom(
+        primary: primaryColor,
+        onPrimary: Colors.white,
+        padding: EdgeInsets.symmetric(vertical: 15.0),
       ),
-    );
-  }
+      onPressed: _handleSignup, // Attach the signup handler here
+    ),
 
-  Widget _buildLoginForm(BuildContext context, Color primaryColor, Color fadedTextColor) {
-    // ... (same as before)
+    // ... rest of your widget build method ...
   }
 }
