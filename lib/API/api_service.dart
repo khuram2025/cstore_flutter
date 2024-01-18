@@ -4,6 +4,11 @@ import 'package:cstore_flutter/screens/customer/components/customerOrdersDetailL
 import 'package:cstore_flutter/screens/customer/customers_list.dart';
 import 'package:cstore_flutter/screens/pos/components/models.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:path/path.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/company.dart';
 
 class ApiService {
   final String baseUrl = 'http://app.channab.com/';
@@ -58,6 +63,48 @@ class ApiService {
       throw Exception('Failed to signup. Status code: ${response.statusCode}');
     }
   }
+
+  Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('authToken', token);
+    print('Token saved: $token'); // Debug print
+  }
+
+
+
+  Future<Map<String, dynamic>> createCompanyProfile(CompanyProfile profile, String authToken) async {
+    var uri = Uri.parse(baseUrl + 'companies/api/create-company/');
+    var request = http.MultipartRequest('POST', uri);
+
+    // Add text fields from the model
+    request.fields.addAll(profile.toMap());
+
+    // Add files if they exist
+    if (profile.logo != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'logo',
+        profile.logo!.path,
+        filename: basename(profile.logo!.path), // optional: to include file name
+      ));
+    }
+    if (profile.coverPic != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'cover_pic',
+        profile.coverPic!.path,
+        filename: basename(profile.coverPic!.path),
+      ));
+    }
+
+    var response = await request.send();
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final respStr = await response.stream.bytesToString();
+      return json.decode(respStr);
+    } else {
+      throw Exception('Failed to create company profile. Status code: ${response.statusCode}');
+    }
+  }
+
 
 
   Future<List<dynamic>> fetchProducts(int companyId) async {

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../ui.dart';
+import '../../bussines/createStore.dart';
 import '../../bussines/storeProfile.dart';
 import '../../dashboard/dashboard_screen.dart';
 import '../../transactions/transaction_screen.dart';
@@ -99,6 +100,16 @@ class SideMenu extends StatelessWidget {
             press: () {
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(builder: (context) => StoreProfilePage()),
+              );
+
+            },
+          ),
+          DrawerListTile(
+            title: "Create Store",
+            svgSrc: "assets/icons/menu_profile.svg",
+            press: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (context) => CreateStorePage()),
               );
 
             },

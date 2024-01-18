@@ -34,6 +34,7 @@ class _StoreProfilePageState extends State<StoreProfilePage> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
