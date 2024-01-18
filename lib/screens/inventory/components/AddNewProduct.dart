@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-
-import 'dart:io';
 
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutter/material.dart';
+import 'dart:io';
+
 import 'package:image_picker/image_picker.dart';
 
 class AddNewProductScreen extends StatefulWidget {

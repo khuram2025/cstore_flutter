@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../ui.dart';
+import '../../bussines/storeProfile.dart';
 import '../../dashboard/dashboard_screen.dart';
 import '../../transactions/transaction_screen.dart';
 
@@ -91,10 +92,16 @@ class SideMenu extends StatelessWidget {
 
             },
           ),
+
           DrawerListTile(
-            title: "Profile",
+            title: "Business Profile",
             svgSrc: "assets/icons/menu_profile.svg",
-            press: () {},
+            press: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (context) => StoreProfilePage()),
+              );
+
+            },
           ),
           DrawerListTile(
             title: "Settings",
